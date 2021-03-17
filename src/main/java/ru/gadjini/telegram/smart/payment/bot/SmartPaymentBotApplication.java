@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.smart.payment;
+package ru.gadjini.telegram.smart.payment.bot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.gadjini.telegram.smart.payment.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import java.time.ZoneOffset;
 import java.util.Locale;
