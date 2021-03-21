@@ -25,7 +25,7 @@ public class SmartPaymentBotApplication {
         setDefaultLocaleAndTZ();
         try {
             SpringApplication.run(SmartPaymentBotApplication.class, args);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.error(ex.getMessage(), ex);
             throw ex;
         }

@@ -4,28 +4,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendInvoice;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
+import org.telegram.telegrambots.meta.api.objects.payments.PreCheckoutQuery;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.PaymentsHandler;
 import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.payment.bot.common.MessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 
 import java.util.List;
 import java.util.Locale;
 
 @Component
-public class BuySubscriptionCommand implements BotCommand {
+public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, CallbackBotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuySubscriptionCommand.class);
 
@@ -41,25 +52,81 @@ public class BuySubscriptionCommand implements BotCommand {
 
     private UserService userService;
 
+    private SubscriptionTimeDeclensionProvider timeDeclensionProvider;
+
+    private InlineKeyboardService inlineKeyboardService;
+
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
-                                  LocalisationService localisationService, UserService userService) {
+                                  LocalisationService localisationService, UserService userService,
+                                  SubscriptionTimeDeclensionProvider timeDeclensionProvider, InlineKeyboardService inlineKeyboardService) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
         this.paymentsProperties = paymentsProperties;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.timeDeclensionProvider = timeDeclensionProvider;
+        this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @Override
+    public void preCheckout(PreCheckoutQuery preCheckoutQuery) {
+        messageService.sendAnswerPreCheckoutQuery(
+                AnswerPreCheckoutQuery.builder()
+                        .preCheckoutQueryId(preCheckoutQuery.getId())
+                        .ok(true)
+                        .build()
+        );
+    }
+
+    @Override
+    public void successfulPayment(Message message) {
+        Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
+        messageService.sendMessage(
+                SendMessage.builder()
+                        .chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT, localeOrDefault))
+                        .build()
+        );
     }
 
     @Override
     public void processMessage(Message message, String[] strings) {
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlan();
-        SendInvoice invoice = createInvoice(message.getFrom().getId(), paidSubscriptionPlan);
+        messageService.sendMessage(
+                SendMessage.builder()
+                        .chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
+                                timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
+                        }, locale))
+                        .parseMode(ParseMode.HTML)
+                        .replyMarkup(inlineKeyboardService.paymentKeyboard(paidSubscriptionPlan, locale))
+                        .build()
+        );
+    }
+
+    @Override
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlan();
+        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+        SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
 
         messageService.sendInvoice(invoice);
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder()
+                        .callbackQueryId(callbackQuery.getId())
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
+                        .build()
+        );
+    }
+
+    @Override
+    public String getName() {
+        return SmartPaymentCommandNames.BUY_COMMAND;
     }
 
     @Override
@@ -67,12 +134,13 @@ public class BuySubscriptionCommand implements BotCommand {
         return SmartPaymentCommandNames.BUY_COMMAND;
     }
 
-    private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan) {
-        Locale locale = userService.getLocaleOrDefault(userId);
+    private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         SendInvoice sendInvoice = SendInvoice.builder()
                 .chatId(userId)
                 .title(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_TITLE, locale))
-                .description(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_DESCRIPTION, locale))
+                .description(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
+                        timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
+                }, locale))
                 .providerToken(getPaymentProviderToken())
                 .currency(paidSubscriptionPlan.getCurrency())
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(paidSubscriptionPlan.getPrice()))))
