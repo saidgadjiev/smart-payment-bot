@@ -28,7 +28,7 @@ public class ButtonFactory {
     public InlineKeyboardButton paymentButton(double price, Period period, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(MessagesProperties.PAY_COMMAND_DESCRIPTION,
-                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage()).months(period.getMonths()), price},
+                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage()).months(period.getMonths()), String.valueOf(price)},
                         locale)
         );
 

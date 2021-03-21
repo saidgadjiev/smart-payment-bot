@@ -29,9 +29,13 @@ import ru.gadjini.telegram.smart.payment.bot.common.MessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
-import ru.gadjini.telegram.smart.payment.bot.service.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,12 +60,15 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private InlineKeyboardService inlineKeyboardService;
 
+    private PaymentService paymentService;
+
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
                                   LocalisationService localisationService, UserService userService,
-                                  SubscriptionTimeDeclensionProvider timeDeclensionProvider, InlineKeyboardService inlineKeyboardService) {
+                                  SubscriptionTimeDeclensionProvider timeDeclensionProvider,
+                                  InlineKeyboardService inlineKeyboardService, PaymentService paymentService) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -70,6 +77,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.userService = userService;
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.paymentService = paymentService;
     }
 
     @Override
@@ -84,11 +92,15 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     @Override
     public void successfulPayment(Message message) {
+        LocalDate paidSubscriptionEndData = paymentService.processPayment(message.getFrom().getId());
+        long paidSubscriptionDaysLeft = ChronoUnit.DAYS.between(LocalDate.now(ZoneOffset.UTC), paidSubscriptionEndData);
         Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT, localeOrDefault))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
+                                new Object[]{paidSubscriptionDaysLeft},
+                                localeOrDefault))
                         .build()
         );
     }
@@ -145,7 +157,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .currency(paidSubscriptionPlan.getCurrency())
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(paidSubscriptionPlan.getPrice()))))
                 .startParameter("smart-payment")
-                .payload(String.valueOf(userId))
                 .build();
 
         LOGGER.debug("Send invoice({})", userId);
