@@ -1,8 +1,8 @@
 package ru.gadjini.telegram.smart.payment.bot.common;
 
-public class MessagesProperties {
+public class SmartPaymentMessagesProperties {
 
-    private MessagesProperties() {
+    private SmartPaymentMessagesProperties() {
     }
 
     public static final String MESSAGE_INVOICE_TITLE = "message.invoice.title";
@@ -17,5 +17,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_INVOICE_SENT_ANSWER = "message.invoice.sent.answer";
 
-    public static final String MESSAGE_PAYMENT_SUPPORT = "message.payment.support";
+    public static final String BUY_COMMAND_DESCRIPTION = "buy.command.description";
+
 }

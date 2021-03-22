@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
-import ru.gadjini.telegram.smart.payment.bot.common.MessagesProperties;
+import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 
 import java.util.Locale;
@@ -27,7 +27,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton paymentButton(double price, Period period, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(MessagesProperties.PAY_COMMAND_DESCRIPTION,
+                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage()).months(period.getMonths()), String.valueOf(price)},
                         locale)
         );

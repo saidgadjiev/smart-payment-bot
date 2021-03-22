@@ -25,7 +25,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
-import ru.gadjini.telegram.smart.payment.bot.common.MessagesProperties;
+import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
@@ -98,7 +98,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
+                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
                                 new Object[]{timeDeclensionProvider.getService(localeOrDefault.getLanguage()).day((int) paidSubscriptionDaysLeft)},
                                 localeOrDefault))
                         .build()
@@ -112,7 +112,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
+                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
                                 timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
                         }, locale))
                         .parseMode(ParseMode.HTML)
@@ -131,7 +131,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         messageService.sendAnswerCallbackQuery(
                 AnswerCallbackQuery.builder()
                         .callbackQueryId(callbackQuery.getId())
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
+                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
                         .build()
         );
     }
@@ -149,8 +149,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         SendInvoice sendInvoice = SendInvoice.builder()
                 .chatId(userId)
-                .title(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_TITLE, locale))
-                .description(localisationService.getMessage(MessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
+                .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
+                .description(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
                         timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
                 }, locale))
                 .providerToken(getPaymentProviderToken())
