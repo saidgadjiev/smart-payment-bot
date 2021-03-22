@@ -99,7 +99,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(MessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                new Object[]{paidSubscriptionDaysLeft},
+                                new Object[]{timeDeclensionProvider.getService(localeOrDefault.getLanguage()).day((int) paidSubscriptionDaysLeft)},
                                 localeOrDefault))
                         .build()
         );
