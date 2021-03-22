@@ -16,4 +16,6 @@ public class MessagesProperties {
     public static final String PAY_COMMAND_DESCRIPTION = "pay.command.description";
 
     public static final String MESSAGE_INVOICE_SENT_ANSWER = "message.invoice.sent.answer";
+
+    public static final String MESSAGE_PAYMENT_SUPPORT = "message.payment.support";
 }

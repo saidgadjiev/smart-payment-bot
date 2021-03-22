@@ -7,4 +7,6 @@ public class SmartPaymentCommandNames {
     }
 
     public static final String BUY = "buy";
+
+    public static final String SUPPORT = "support";
 }
