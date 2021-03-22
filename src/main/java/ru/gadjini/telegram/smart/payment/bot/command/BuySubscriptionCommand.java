@@ -138,12 +138,12 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     @Override
     public String getName() {
-        return SmartPaymentCommandNames.BUY_COMMAND;
+        return SmartPaymentCommandNames.BUY;
     }
 
     @Override
     public String getCommandIdentifier() {
-        return SmartPaymentCommandNames.BUY_COMMAND;
+        return SmartPaymentCommandNames.BUY;
     }
 
     private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {

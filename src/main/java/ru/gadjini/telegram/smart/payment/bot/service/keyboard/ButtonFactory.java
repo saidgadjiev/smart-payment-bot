@@ -32,7 +32,7 @@ public class ButtonFactory {
                         locale)
         );
 
-        inlineKeyboardButton.setCallbackData(SmartPaymentCommandNames.BUY_COMMAND + CommandParser.COMMAND_NAME_SEPARATOR);
+        inlineKeyboardButton.setCallbackData(SmartPaymentCommandNames.BUY + CommandParser.COMMAND_NAME_SEPARATOR);
 
         return inlineKeyboardButton;
     }
