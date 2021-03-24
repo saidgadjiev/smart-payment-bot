@@ -24,8 +24,7 @@ public class InlineKeyboardService {
 
     public InlineKeyboardMarkup paymentKeyboard(PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentButton(paidSubscriptionPlan.getPrice(),
-                paidSubscriptionPlan.getPeriod(), locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentButton(paidSubscriptionPlan, locale)));
 
         return inlineKeyboardMarkup;
     }

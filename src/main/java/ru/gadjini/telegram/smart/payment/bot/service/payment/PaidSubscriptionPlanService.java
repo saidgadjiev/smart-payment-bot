@@ -18,4 +18,8 @@ public class PaidSubscriptionPlanService {
     public PaidSubscriptionPlan getPlan() {
         return paidSubscriptionPlanDao.getActivePlan();
     }
+
+    public PaidSubscriptionPlan getPlanById(int id) {
+        return paidSubscriptionPlanDao.getById(id);
+    }
 }

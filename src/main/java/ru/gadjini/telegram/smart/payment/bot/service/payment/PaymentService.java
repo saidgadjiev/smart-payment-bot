@@ -20,8 +20,8 @@ public class PaymentService {
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
     }
 
-    public LocalDate processPayment(int userId) {
-        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlan();
+    public LocalDate processPayment(int userId, int planId) {
+        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
         return paidSubscriptionService.renewSubscription(userId, paidSubscriptionPlan.getId(), paidSubscriptionPlan.getPeriod());
     }

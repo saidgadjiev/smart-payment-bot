@@ -27,6 +27,14 @@ public class PaidSubscriptionPlanDao {
         );
     }
 
+    public PaidSubscriptionPlan getById(int id) {
+        return jdbcTemplate.query(
+                "SELECT * FROM paid_subscription_plan WHERE id = ?",
+                ps -> ps.setInt(1, id),
+                rs -> rs.next() ? map(rs) : null
+        );
+    }
+
     private PaidSubscriptionPlan map(ResultSet rs) throws SQLException {
         PaidSubscriptionPlan paidSubscriptionPlan = new PaidSubscriptionPlan();
         paidSubscriptionPlan.setId(rs.getInt(PaidSubscriptionPlan.ID));

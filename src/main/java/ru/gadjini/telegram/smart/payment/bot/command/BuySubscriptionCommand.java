@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.smart.payment.bot.command;
 
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,13 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
-import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
+import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
+import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
@@ -62,13 +65,15 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private PaymentService paymentService;
 
+    private Gson gson;
+
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
-                                  InlineKeyboardService inlineKeyboardService, PaymentService paymentService) {
+                                  InlineKeyboardService inlineKeyboardService, PaymentService paymentService, Gson gson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -78,6 +83,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
+        this.gson = gson;
     }
 
     @Override
@@ -92,7 +98,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     @Override
     public void successfulPayment(Message message) {
-        LocalDate paidSubscriptionEndData = paymentService.processPayment(message.getFrom().getId());
+        InvoicePayload invoicePayload = gson.fromJson(message.getSuccessfulPayment().getInvoicePayload(), InvoicePayload.class);
+        LocalDate paidSubscriptionEndData = paymentService.processPayment(message.getFrom().getId(), invoicePayload.getPlanId());
         long paidSubscriptionDaysLeft = ChronoUnit.DAYS.between(LocalDate.now(ZoneOffset.UTC), paidSubscriptionEndData);
         Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
@@ -122,8 +129,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     }
 
     @Override
-    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
-        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlan();
+    public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
+        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(requestParams.getInt(SmartPaymentArg.PLAN_ID.getName()));
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
 
@@ -155,6 +162,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 }, locale))
                 .providerToken(getPaymentProviderToken())
                 .currency(paidSubscriptionPlan.getCurrency())
+                .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(paidSubscriptionPlan.getPrice()))))
                 .startParameter("smart-payment")
                 .build();
