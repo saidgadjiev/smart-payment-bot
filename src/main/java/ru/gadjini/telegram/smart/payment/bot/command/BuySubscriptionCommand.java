@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.smart.payment.bot.command;
 
+import com.antkorwin.xsync.XSync;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTime
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.utils.SmartMath;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
@@ -36,6 +39,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardServ
 import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -67,13 +71,16 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private Gson gson;
 
+    private XSync<Long> longXSync;
+
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
-                                  InlineKeyboardService inlineKeyboardService, PaymentService paymentService, Gson gson) {
+                                  InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
+                                  Gson gson, XSync<Long> longXSync) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -84,16 +91,36 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
         this.gson = gson;
+        this.longXSync = longXSync;
     }
 
     @Override
     public void preCheckout(PreCheckoutQuery preCheckoutQuery) {
-        messageService.sendAnswerPreCheckoutQuery(
-                AnswerPreCheckoutQuery.builder()
-                        .preCheckoutQueryId(preCheckoutQuery.getId())
-                        .ok(true)
-                        .build()
-        );
+        Locale locale = userService.getLocaleOrDefault(preCheckoutQuery.getFrom().getId());
+        PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(preCheckoutQuery.getFrom().getId());
+
+        if (checkoutValidationResult.isValid()) {
+            messageService.sendAnswerPreCheckoutQuery(
+                    AnswerPreCheckoutQuery.builder()
+                            .preCheckoutQueryId(preCheckoutQuery.getId())
+                            .ok(true)
+                            .build()
+            );
+        } else {
+            messageService.sendAnswerPreCheckoutQuery(
+                    AnswerPreCheckoutQuery.builder()
+                            .preCheckoutQueryId(preCheckoutQuery.getId())
+                            .ok(false)
+                            .errorMessage(localisationService.getMessage(
+                                    SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
+                                    new Object[]{
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                    },
+                                    locale))
+                            .build()
+            );
+        }
     }
 
     @Override
@@ -130,17 +157,39 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     @Override
     public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
-        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(requestParams.getInt(SmartPaymentArg.PLAN_ID.getName()));
-        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
+        longXSync.execute((long) callbackQuery.getFrom().getId(), () -> {
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+            PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(callbackQuery.getFrom().getId());
+            if (checkoutValidationResult.isValid()) {
+                PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(
+                        requestParams.getInt(SmartPaymentArg.PLAN_ID.getName())
+                );
+                SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
 
-        messageService.sendInvoice(invoice);
-        messageService.sendAnswerCallbackQuery(
-                AnswerCallbackQuery.builder()
-                        .callbackQueryId(callbackQuery.getId())
-                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
-                        .build()
-        );
+                messageService.sendInvoice(invoice);
+                messageService.sendAnswerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callbackQuery.getId())
+                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
+                                .build()
+                );
+            } else {
+                messageService.sendAnswerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callbackQuery.getId())
+                                .text(localisationService.getMessage(
+                                        SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
+                                        new Object[]{
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                        },
+                                        locale))
+                                .showAlert(true)
+                                .cacheTime(getCheckoutInvalidAnswerCacheTime(checkoutValidationResult.getNextCheckoutDate()))
+                                .build()
+                );
+            }
+        });
     }
 
     @Override
@@ -174,6 +223,13 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private int normalizePrice(double price) {
         return (int) (price * TgConstants.PAYMENTS_USD_FACTOR);
+    }
+
+    private int getCheckoutInvalidAnswerCacheTime(LocalDate nextCheckoutDate) {
+        nextCheckoutDate = nextCheckoutDate.minusDays(3);
+        long cacheTime = Duration.between(nextCheckoutDate, LocalDate.now()).toSeconds();
+
+        return SmartMath.toExactInt(cacheTime);
     }
 
     private String getPaymentProviderToken() {
