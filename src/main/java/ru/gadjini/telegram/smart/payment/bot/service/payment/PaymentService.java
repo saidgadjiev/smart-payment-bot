@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 
@@ -19,18 +17,11 @@ public class PaymentService {
 
     private PaidSubscriptionPlanService paidSubscriptionPlanService;
 
-    private LocalisationService localisationService;
-
-    private UserService userService;
-
     @Autowired
     public PaymentService(PaidSubscriptionService paidSubscriptionService,
-                          PaidSubscriptionPlanService paidSubscriptionPlanService,
-                          LocalisationService localisationService, UserService userService) {
+                          PaidSubscriptionPlanService paidSubscriptionPlanService) {
         this.paidSubscriptionService = paidSubscriptionService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
-        this.localisationService = localisationService;
-        this.userService = userService;
     }
 
     public LocalDate processPayment(int userId, int planId) {
