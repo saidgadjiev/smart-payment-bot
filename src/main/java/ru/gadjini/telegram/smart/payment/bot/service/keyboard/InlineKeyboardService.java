@@ -3,8 +3,8 @@ package ru.gadjini.telegram.smart.payment.bot.service.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
-import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 
 import java.util.List;
 import java.util.Locale;

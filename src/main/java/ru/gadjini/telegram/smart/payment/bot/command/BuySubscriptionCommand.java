@@ -20,20 +20,20 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.PaymentsHandler;
 import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
+import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
-import ru.gadjini.telegram.smart.payment.bot.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
-import ru.gadjini.telegram.smart.payment.bot.service.payment.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
 import java.time.LocalDate;
@@ -115,7 +115,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void processMessage(Message message, String[] strings) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlan();
+        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getActivePlan();
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
