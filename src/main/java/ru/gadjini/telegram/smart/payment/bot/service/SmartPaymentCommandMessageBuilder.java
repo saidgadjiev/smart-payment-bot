@@ -30,6 +30,8 @@ public class SmartPaymentCommandMessageBuilder implements CommandMessageBuilder 
                 " - " + localisationService.getMessage(SmartPaymentMessagesProperties.BUY_COMMAND_DESCRIPTION, locale) +
                 "\n" + CommandParser.COMMAND_START_CHAR + CommandNames.SUBSCRIPTION +
                 " - " + localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale) +
+                "\n" + CommandParser.COMMAND_START_CHAR + CommandNames.LANGUAGE_COMMAND_NAME +
+                " - " + localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale) +
                 "\n" + CommandParser.COMMAND_START_CHAR + CommandNames.HELP_COMMAND +
                 " - " + localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale);
     }
