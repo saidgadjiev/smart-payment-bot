@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 
@@ -17,21 +18,26 @@ public class PaymentService {
 
     private PaidSubscriptionPlanService paidSubscriptionPlanService;
 
+    private SubscriptionProperties subscriptionProperties;
+
     @Autowired
     public PaymentService(PaidSubscriptionService paidSubscriptionService,
-                          PaidSubscriptionPlanService paidSubscriptionPlanService) {
+                          PaidSubscriptionPlanService paidSubscriptionPlanService,
+                          SubscriptionProperties subscriptionProperties) {
         this.paidSubscriptionService = paidSubscriptionService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
+        this.subscriptionProperties = subscriptionProperties;
     }
 
     public LocalDate processPayment(int userId, int planId) {
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
-        return paidSubscriptionService.renewSubscription(userId, paidSubscriptionPlan.getId(), paidSubscriptionPlan.getPeriod());
+        return paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
+                userId, paidSubscriptionPlan.getId(), paidSubscriptionPlan.getPeriod());
     }
 
     public CheckoutValidationResult validateCheckout(int userId) {
-        PaidSubscription subscription = paidSubscriptionService.getSubscription(userId);
+        PaidSubscription subscription = paidSubscriptionService.getSubscription(subscriptionProperties.getPaidBotName(), userId);
 
         if (subscription.isActive()) {
             LocalDate endDate = subscription.getEndDate();
@@ -39,7 +45,7 @@ public class PaymentService {
             LocalDate now = LocalDate.now(ZoneOffset.UTC);
 
             if (now.isBefore(checkoutDate)) {
-                return new CheckoutValidationResult(endDate, endDate.minusDays(3));
+                return new CheckoutValidationResult(endDate, checkoutDate.plusDays(1));
             }
         }
 

@@ -39,8 +39,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardServ
 import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
-import java.time.Duration;
-import java.time.LocalDate;
+import java.time.*;
 import java.util.List;
 import java.util.Locale;
 
@@ -136,6 +135,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
                                 new Object[]{PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscriptionEndData)},
                                 localeOrDefault))
+                        .parseMode(ParseMode.HTML)
                         .build()
         );
         LOGGER.debug("Successful payment({}, {}, {})", message.getFrom().getId(), invoicePayload.getPlanId(), paidSubscriptionEndData);
@@ -227,8 +227,12 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     }
 
     private int getCheckoutInvalidAnswerCacheTime(LocalDate nextCheckoutDate) {
-        nextCheckoutDate = nextCheckoutDate.minusDays(3);
-        long cacheTime = Duration.between(nextCheckoutDate, LocalDate.now()).toSeconds();
+        LocalDateTime nextCheckoutDateTime = LocalDateTime.of(nextCheckoutDate, LocalTime.of(0, 0, 0));
+        long cacheTime = Duration.between(LocalDateTime.now(ZoneOffset.UTC), nextCheckoutDateTime).toSeconds();
+
+        if (cacheTime < 0) {
+            return 0;
+        }
 
         return SmartMath.toExactInt(cacheTime);
     }
