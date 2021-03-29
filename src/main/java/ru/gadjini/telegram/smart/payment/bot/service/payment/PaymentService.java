@@ -39,7 +39,9 @@ public class PaymentService {
     public CheckoutValidationResult validateCheckout(int userId) {
         PaidSubscription subscription = paidSubscriptionService.getSubscription(subscriptionProperties.getPaidBotName(), userId);
 
-        if (subscription.isActive()) {
+        if (subscription == null || subscription.isTrial()) {
+            return CheckoutValidationResult.OK;
+        } else if (subscription.isActive()) {
             LocalDate endDate = subscription.getEndDate();
             LocalDate checkoutDate = endDate.minusDays(5);
             LocalDate now = LocalDate.now(ZoneOffset.UTC);
