@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.smart.payment.bot.command;
 
-import com.antkorwin.xsync.XSync;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +67,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private Gson gson;
 
-    private XSync<Long> longXSync;
-
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
@@ -77,7 +74,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
-                                  Gson gson, XSync<Long> longXSync) {
+                                  Gson gson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -88,39 +85,52 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
         this.gson = gson;
-        this.longXSync = longXSync;
     }
 
     @Override
     public void preCheckout(PreCheckoutQuery preCheckoutQuery) {
-        InvoicePayload invoicePayload = gson.fromJson(preCheckoutQuery.getInvoicePayload(), InvoicePayload.class);
         Locale locale = userService.getLocaleOrDefault(preCheckoutQuery.getFrom().getId());
-        PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(preCheckoutQuery.getFrom().getId());
 
-        if (checkoutValidationResult.isValid()) {
-            messageService.sendAnswerPreCheckoutQuery(
-                    AnswerPreCheckoutQuery.builder()
-                            .preCheckoutQueryId(preCheckoutQuery.getId())
-                            .ok(true)
-                            .build()
-            );
-            LOGGER.debug("Success pre checkout({}, {})", preCheckoutQuery.getFrom().getId(), invoicePayload.getPlanId());
-        } else {
+        try {
+            InvoicePayload invoicePayload = gson.fromJson(preCheckoutQuery.getInvoicePayload(), InvoicePayload.class);
+            PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(preCheckoutQuery.getFrom().getId());
+
+            if (checkoutValidationResult.isValid()) {
+                messageService.sendAnswerPreCheckoutQuery(
+                        AnswerPreCheckoutQuery.builder()
+                                .preCheckoutQueryId(preCheckoutQuery.getId())
+                                .ok(true)
+                                .build()
+                );
+                LOGGER.debug("Success pre checkout({}, {})", preCheckoutQuery.getFrom().getId(), invoicePayload.getPlanId());
+            } else {
+                messageService.sendAnswerPreCheckoutQuery(
+                        AnswerPreCheckoutQuery.builder()
+                                .preCheckoutQueryId(preCheckoutQuery.getId())
+                                .ok(false)
+                                .errorMessage(localisationService.getMessage(
+                                        SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
+                                        new Object[]{
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                        },
+                                        locale))
+                                .build()
+                );
+                LOGGER.debug("Invalid pre checkout({}, {}, {}, {})", preCheckoutQuery.getFrom().getId(), invoicePayload.getPlanId(),
+                        checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
+            }
+        } catch (Throwable e) {
+            LOGGER.error("(" + preCheckoutQuery.getFrom().getId() + ")" + e.getMessage(), e);
             messageService.sendAnswerPreCheckoutQuery(
                     AnswerPreCheckoutQuery.builder()
                             .preCheckoutQueryId(preCheckoutQuery.getId())
                             .ok(false)
                             .errorMessage(localisationService.getMessage(
-                                    SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
-                                    new Object[]{
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
-                                    },
+                                    SmartPaymentMessagesProperties.MESSAGE_PRE_CHECKOUT_ERROR,
                                     locale))
                             .build()
             );
-            LOGGER.debug("Invalid pre checkout({}, {}, {}, {})", preCheckoutQuery.getFrom().getId(), invoicePayload.getPlanId(),
-                    checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
         }
     }
 
@@ -159,42 +169,40 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     @Override
     public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
-        longXSync.execute((long) callbackQuery.getFrom().getId(), () -> {
-            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-            PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(callbackQuery.getFrom().getId());
-            if (checkoutValidationResult.isValid()) {
-                PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(
-                        requestParams.getInt(SmartPaymentArg.PLAN_ID.getName())
-                );
-                SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
+        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+        PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(callbackQuery.getFrom().getId());
+        if (checkoutValidationResult.isValid()) {
+            PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(
+                    requestParams.getInt(SmartPaymentArg.PLAN_ID.getName())
+            );
+            SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
 
-                messageService.sendInvoice(invoice);
-                messageService.sendAnswerCallbackQuery(
-                        AnswerCallbackQuery.builder()
-                                .callbackQueryId(callbackQuery.getId())
-                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
-                                .build()
-                );
-                LOGGER.debug("Send invoice({}, {})", callbackQuery.getFrom().getId(), paidSubscriptionPlan.getId());
-            } else {
-                messageService.sendAnswerCallbackQuery(
-                        AnswerCallbackQuery.builder()
-                                .callbackQueryId(callbackQuery.getId())
-                                .text(localisationService.getMessage(
-                                        SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
-                                        new Object[]{
-                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
-                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
-                                        },
-                                        locale))
-                                .showAlert(true)
-                                .cacheTime(getCheckoutInvalidAnswerCacheTime(checkoutValidationResult.getNextCheckoutDate()))
-                                .build()
-                );
-                LOGGER.debug("Invalid checkout({}, {}, {})", callbackQuery.getFrom().getId(),
-                        checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
-            }
-        });
+            messageService.sendInvoice(invoice);
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder()
+                            .callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_SENT_ANSWER, locale))
+                            .build()
+            );
+            LOGGER.debug("Send invoice({}, {})", callbackQuery.getFrom().getId(), paidSubscriptionPlan.getId());
+        } else {
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder()
+                            .callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(
+                                    SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
+                                    new Object[]{
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                    },
+                                    locale))
+                            .showAlert(true)
+                            .cacheTime(getCheckoutInvalidAnswerCacheTime(checkoutValidationResult.getNextCheckoutDate()))
+                            .build()
+            );
+            LOGGER.debug("Invalid checkout({}, {}, {})", callbackQuery.getFrom().getId(),
+                    checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
+        }
     }
 
     @Override

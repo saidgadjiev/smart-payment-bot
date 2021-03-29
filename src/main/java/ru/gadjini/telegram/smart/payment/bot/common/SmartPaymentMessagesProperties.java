@@ -20,4 +20,6 @@ public class SmartPaymentMessagesProperties {
     public static final String BUY_COMMAND_DESCRIPTION = "buy.command.description";
 
     public static final String MESSAGE_INVALID_CHECKOUT_DATE = "message.invalid.checkout.date";
+
+    public static final String MESSAGE_PRE_CHECKOUT_ERROR = "message.pre.checkout.error";
 }
