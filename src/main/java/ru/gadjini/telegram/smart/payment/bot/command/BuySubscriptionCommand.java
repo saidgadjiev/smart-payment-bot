@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
@@ -65,6 +66,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private PaymentService paymentService;
 
+    private SubscriptionProperties subscriptionProperties;
+
     private Gson gson;
 
     @Autowired
@@ -74,7 +77,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
-                                  Gson gson) {
+                                  SubscriptionProperties subscriptionProperties, Gson gson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -84,6 +87,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
+        this.subscriptionProperties = subscriptionProperties;
         this.gson = gson;
     }
 
@@ -159,7 +163,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
+                                timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                subscriptionProperties.getPaidBotName()
                         }, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(inlineKeyboardService.paymentKeyboard(paidSubscriptionPlan, locale))
@@ -220,7 +225,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .chatId(userId)
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
                 .description(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
-                        timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths())
+                        timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
+                        subscriptionProperties.getPaidBotName()
                 }, locale))
                 .providerToken(getPaymentProviderToken())
                 .currency(paidSubscriptionPlan.getCurrency())

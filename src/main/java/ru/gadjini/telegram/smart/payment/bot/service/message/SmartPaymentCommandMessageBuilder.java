@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.smart.payment.bot.service;
+package ru.gadjini.telegram.smart.payment.bot.service.message;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
