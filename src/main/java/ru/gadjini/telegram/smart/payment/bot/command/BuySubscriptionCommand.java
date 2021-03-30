@@ -163,7 +163,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
                                 subscriptionProperties.getPaidBotName()
                         }, locale))
                         .parseMode(ParseMode.HTML)
