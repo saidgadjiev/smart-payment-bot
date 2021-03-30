@@ -158,7 +158,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void processMessage(Message message, String[] strings) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getActivePlan();
+        List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans();
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
@@ -166,7 +166,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                 subscriptionProperties.getPaidBotName()
                         }, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(inlineKeyboardService.paymentKeyboard(paidSubscriptionPlan, locale))
+                        .replyMarkup(inlineKeyboardService.paymentKeyboard(paidSubscriptionPlans, locale))
                         .build()
         );
     }

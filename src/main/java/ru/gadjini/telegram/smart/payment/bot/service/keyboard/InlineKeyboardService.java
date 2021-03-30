@@ -22,9 +22,12 @@ public class InlineKeyboardService {
         this.buttonFactory = buttonFactory;
     }
 
-    public InlineKeyboardMarkup paymentKeyboard(PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+    public InlineKeyboardMarkup paymentKeyboard(List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentButton(paidSubscriptionPlan, locale)));
+
+        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentButton(paidSubscriptionPlan, locale)));
+        });
 
         return inlineKeyboardMarkup;
     }
