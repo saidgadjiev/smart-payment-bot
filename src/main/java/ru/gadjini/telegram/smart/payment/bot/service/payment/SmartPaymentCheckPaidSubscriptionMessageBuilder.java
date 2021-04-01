@@ -10,8 +10,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTime
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.CheckPaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Locale;
 
 @Component
@@ -44,14 +45,16 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                 return localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION,
                         new Object[]{
-                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
+                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                                TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                         },
                         locale);
             } else {
                 return localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION_EXPIRED,
                         new Object[]{
-                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
+                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                                TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                         },
                         locale);
             }
@@ -62,7 +65,8 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                     new Object[]{
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                             subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).months(planPeriod.getMonths()),
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate())
+                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
+                            TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
                     locale);
         } else {
@@ -72,7 +76,8 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                     new Object[]{
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                             subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).months(planPeriod.getMonths()),
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate())
+                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
+                            TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
                     locale);
         }
