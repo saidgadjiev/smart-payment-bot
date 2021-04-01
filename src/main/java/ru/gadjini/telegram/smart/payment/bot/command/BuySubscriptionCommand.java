@@ -20,6 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.PaymentsHandler;
 import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
+import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
@@ -31,6 +32,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.utils.SmartMath;
+import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
@@ -115,8 +117,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                 .errorMessage(localisationService.getMessage(
                                         SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
                                         new Object[]{
-                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
-                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getSubscriptionEndDate())),
+                                                PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getNextCheckoutDate()))
                                         },
                                         locale))
                                 .build()
@@ -141,18 +143,18 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void successfulPayment(Message message) {
         InvoicePayload invoicePayload = gson.fromJson(message.getSuccessfulPayment().getInvoicePayload(), InvoicePayload.class);
-        LocalDate paidSubscriptionEndData = paymentService.processPayment(message.getFrom().getId(), invoicePayload.getPlanId());
+        PaidSubscription paidSubscription = paymentService.processPayment(message.getFrom().getId(), invoicePayload.getPlanId());
         Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                new Object[]{PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscriptionEndData)},
+                                new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
                                 localeOrDefault))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
-        LOGGER.debug("Successful payment({}, {}, {})", message.getFrom().getId(), invoicePayload.getPlanId(), paidSubscriptionEndData);
+        LOGGER.debug("Successful payment({}, {}, {})", message.getFrom().getId(), invoicePayload.getPlanId(), paidSubscription.getZonedEndDate());
     }
 
     @Override
@@ -196,8 +198,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                             .text(localisationService.getMessage(
                                     SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
                                     new Object[]{
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getSubscriptionEndDate()),
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(checkoutValidationResult.getNextCheckoutDate())
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getSubscriptionEndDate())),
+                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getNextCheckoutDate()))
                                     },
                                     locale))
                             .showAlert(true)

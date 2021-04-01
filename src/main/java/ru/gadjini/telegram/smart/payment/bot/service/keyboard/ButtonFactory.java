@@ -8,6 +8,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
+import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
@@ -31,7 +32,7 @@ public class ButtonFactory {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
-                                .months(paidSubscriptionPlan.getPeriod().getMonths()), String.valueOf(paidSubscriptionPlan.getPrice())},
+                                .months(paidSubscriptionPlan.getPeriod().getMonths()), NumberUtils.toString(paidSubscriptionPlan.getPrice())},
                         locale)
         );
 

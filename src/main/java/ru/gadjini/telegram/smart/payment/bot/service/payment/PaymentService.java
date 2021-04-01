@@ -29,7 +29,7 @@ public class PaymentService {
         this.subscriptionProperties = subscriptionProperties;
     }
 
-    public LocalDate processPayment(int userId, int planId) {
+    public PaidSubscription processPayment(int userId, int planId) {
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
         return paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
