@@ -1,0 +1,15 @@
+version: '2.4'
+services:
+  payment:
+    container_name: payment
+    restart: always
+    build:
+      context: ../../../
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+
+networks:
+  default:
+    external:
+      name: fileutils
