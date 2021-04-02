@@ -1,0 +1,13 @@
+Description:
+I'm the bot for buying a subscription to @SmartVideoConverterBot
+
+AboutText:
+Hello! I'm the bot for buying a subscription to @SmartVideoConverterBot
+
+Commands:
+start - restart the bot
+buy - buy subscription
+subscription - check subscription
+time - current utc time
+language - change language
+help - help
