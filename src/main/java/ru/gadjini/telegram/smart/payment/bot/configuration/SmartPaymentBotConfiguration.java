@@ -9,9 +9,10 @@ public class SmartPaymentBotConfiguration {
 
     @Bean
     public BotFilter botFilter(UpdatesHandlerFilter updatesHandlerFilter,
+                               TechWorkFilter techWorkFilter,
                                UpdateFilter updateFilter, UserSynchronizedFilter userSynchronizedFilter,
                                StartCommandFilter startCommandFilter) {
-        updateFilter.setNext(userSynchronizedFilter).setNext(startCommandFilter).setNext(updatesHandlerFilter);
+        updateFilter.setNext(userSynchronizedFilter).setNext(startCommandFilter).setNext(techWorkFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;
     }
