@@ -26,11 +26,14 @@ import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
+import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverterFactory;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 import ru.gadjini.telegram.smart.bot.commons.utils.SmartMath;
 import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
@@ -70,6 +73,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private SubscriptionProperties subscriptionProperties;
 
+    private TelegramCurrencyConverterFactory telegramCurrencyConverterFactory;
+
     private Gson gson;
 
     @Autowired
@@ -79,7 +84,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
-                                  SubscriptionProperties subscriptionProperties, Gson gson) {
+                                  SubscriptionProperties subscriptionProperties,
+                                  TelegramCurrencyConverterFactory telegramCurrencyConverterFactory, Gson gson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -90,6 +96,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
         this.subscriptionProperties = subscriptionProperties;
+        this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
         this.gson = gson;
     }
 
@@ -222,6 +229,10 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     }
 
     private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+        double usd = paidSubscriptionPlan.getPrice();
+        TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
+        double rubles = NumberUtils.round(converter.convertToRub(usd), 2);
+
         return SendInvoice.builder()
                 .chatId(userId)
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
@@ -230,15 +241,16 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                         subscriptionProperties.getPaidBotName()
                 }, locale))
                 .providerToken(getPaymentProviderToken())
-                .currency(paidSubscriptionPlan.getCurrency())
+                .currency(TgConstants.RUB_CURRENCY)
                 .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
-                .prices(List.of(new LabeledPrice("Pay", normalizePrice(paidSubscriptionPlan.getPrice()))))
+                .prices(List.of(new LabeledPrice("Pay", normalizePrice(rubles))))
+                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, rubles, locale))
                 .startParameter("smart-payment")
                 .build();
     }
 
     private int normalizePrice(double price) {
-        return (int) (price * TgConstants.PAYMENTS_USD_FACTOR);
+        return (int) (price * TgConstants.PAYMENTS_AMOUNT_FACTOR);
     }
 
     private int getCheckoutInvalidAnswerCacheTime(LocalDate nextCheckoutDate) {
