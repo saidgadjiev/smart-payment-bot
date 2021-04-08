@@ -39,7 +39,7 @@ public class ButtonFactory {
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(rubles, 2), NumberUtils.toString(usd)},
+                                NumberUtils.toString(rubles, 2), NumberUtils.toString(usd, 2)},
                         locale)
         );
 
@@ -54,7 +54,7 @@ public class ButtonFactory {
     public InlineKeyboardButton payButton(double usd, double rubles, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.INVOICE_PAY_COMMAND_DESCRIPTION,
-                        new Object[]{NumberUtils.toString(rubles, 2), NumberUtils.toString(usd)},
+                        new Object[]{NumberUtils.toString(rubles, 2), NumberUtils.toString(usd, 2)},
                         locale));
 
         inlineKeyboardButton.setPay(true);
