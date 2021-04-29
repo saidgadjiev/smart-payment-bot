@@ -231,7 +231,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         double usd = paidSubscriptionPlan.getPrice();
         TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
-        double rubles = NumberUtils.round(converter.convertToRub(usd), 2);
+        double targetPrice = NumberUtils.round(converter.convertTo(usd, subscriptionProperties.getPaymentCurrency()), 2);
 
         return SendInvoice.builder()
                 .chatId(userId)
@@ -241,10 +241,10 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                         subscriptionProperties.getPaidBotName()
                 }, locale))
                 .providerToken(getPaymentProviderToken())
-                .currency(TgConstants.RUB_CURRENCY)
+                .currency(subscriptionProperties.getPaymentCurrency())
                 .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
-                .prices(List.of(new LabeledPrice("Pay", normalizePrice(rubles))))
-                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, rubles, locale))
+                .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
+                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))
                 .startParameter("smart-payment")
                 .build();
     }

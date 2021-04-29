@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
@@ -23,23 +24,28 @@ public class ButtonFactory {
 
     private SubscriptionTimeDeclensionProvider timeDeclensionProvider;
 
+    private SubscriptionProperties subscriptionProperties;
+
     @Autowired
     public ButtonFactory(LocalisationService localisationService,
-                         SubscriptionTimeDeclensionProvider timeDeclensionProvider) {
+                         SubscriptionTimeDeclensionProvider timeDeclensionProvider,
+                         SubscriptionProperties subscriptionProperties) {
         this.localisationService = localisationService;
         this.timeDeclensionProvider = timeDeclensionProvider;
+        this.subscriptionProperties = subscriptionProperties;
     }
 
     public InlineKeyboardButton paymentButton(PaidSubscriptionPlan paidSubscriptionPlan,
                                               TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
         double usd = paidSubscriptionPlan.getPrice();
-        double rubles = telegramCurrencyConverter.convertToRub(paidSubscriptionPlan.getPrice());
+        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), subscriptionProperties.getPaymentCurrency());
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(rubles, 2), NumberUtils.toString(usd, 2)},
+                                NumberUtils.toString(targetPrice, 2), subscriptionProperties.getPaymentCurrency(),
+                                NumberUtils.toString(usd, 2)},
                         locale)
         );
 
@@ -51,10 +57,11 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton payButton(double usd, double rubles, Locale locale) {
+    public InlineKeyboardButton payButton(double usd, double targetPrice, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.INVOICE_PAY_COMMAND_DESCRIPTION,
-                        new Object[]{NumberUtils.toString(rubles, 2), NumberUtils.toString(usd, 2)},
+                        new Object[]{NumberUtils.toString(targetPrice, 2),
+                                subscriptionProperties.getPaymentCurrency(), NumberUtils.toString(usd, 2)},
                         locale));
 
         inlineKeyboardButton.setPay(true);

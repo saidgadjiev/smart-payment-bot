@@ -40,9 +40,9 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup invoiceKeyboard(double usd, double rubles, Locale locale) {
+    public InlineKeyboardMarkup invoiceKeyboard(double usd, double targetPrice, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payButton(usd, rubles, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payButton(usd, targetPrice, locale)));
 
         return inlineKeyboardMarkup;
     }
