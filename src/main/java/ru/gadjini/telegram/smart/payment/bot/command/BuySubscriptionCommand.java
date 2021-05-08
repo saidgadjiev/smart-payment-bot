@@ -241,8 +241,12 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
                 subscriptionProperties.getPaidBotName()
         }, locale);
+        JsonObject providerData = new JsonObject();
+        JsonObject data = new JsonObject();
+        providerData.add("provider_data", data);
+        data.addProperty("desc", description);
 
-        SendInvoice.SendInvoiceBuilder builder= SendInvoice.builder()
+        return SendInvoice.builder()
                 .chatId(userId)
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
                 .description(description)
@@ -251,19 +255,9 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
                 .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))
-                .startParameter("smart-payment");
-
-        if (subscriptionProperties.isPaymentDescription()) {
-            LOGGER.debug("With description({})", description);
-            JsonObject providerData = new JsonObject();
-            JsonObject data = new JsonObject();
-            providerData.add("provider_data", data);
-            data.addProperty("desc", description);
-
-            builder.providerData(gson.toJson(providerData));
-        }
-
-        return builder.build();
+                .startParameter("SmartPayment")
+                .providerData(gson.toJson(providerData))
+                .build();
     }
 
     private int normalizePrice(double price) {
