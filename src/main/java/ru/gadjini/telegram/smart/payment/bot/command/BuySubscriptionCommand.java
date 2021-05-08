@@ -237,16 +237,12 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         double usd = paidSubscriptionPlan.getPrice();
         TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
         double targetPrice = NumberUtils.round(converter.convertTo(usd, subscriptionProperties.getPaymentCurrency()), 2);
-        JsonObject providerData = new JsonObject();
-        JsonObject data = new JsonObject();
-        providerData.add("provider_data", data);
         String description = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
                 timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
                 subscriptionProperties.getPaidBotName()
         }, locale);
-        data.addProperty("desc", description);
 
-        return SendInvoice.builder()
+        SendInvoice.SendInvoiceBuilder builder= SendInvoice.builder()
                 .chatId(userId)
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
                 .description(description)
@@ -254,9 +250,18 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .currency(subscriptionProperties.getPaymentCurrency())
                 .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
-                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))
-                .providerData(gson.toJson(providerData))
-                .build();
+                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale));
+
+        if (subscriptionProperties.isPaymentDescription()) {
+            JsonObject providerData = new JsonObject();
+            JsonObject data = new JsonObject();
+            providerData.add("provider_data", data);
+            data.addProperty("desc", description);
+
+            builder.providerData(gson.toJson(providerData));
+        }
+
+        return builder.build();
     }
 
     private int normalizePrice(double price) {
