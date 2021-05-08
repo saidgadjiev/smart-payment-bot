@@ -250,9 +250,11 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .currency(subscriptionProperties.getPaymentCurrency())
                 .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
-                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale));
+                .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))
+                .startParameter("smart-payment");
 
         if (subscriptionProperties.isPaymentDescription()) {
+            LOGGER.debug("With description({})", description);
             JsonObject providerData = new JsonObject();
             JsonObject data = new JsonObject();
             providerData.add("provider_data", data);
