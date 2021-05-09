@@ -57,13 +57,24 @@ public class RenewSubscriptionCommand implements BotCommand {
         Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
-                        .chatId(String.valueOf(message.getChatId()))
+                        .chatId(String.valueOf(userId))
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
                                 new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
                                 localeOrDefault))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
+        if (userId != message.getFrom().getId()) {
+            messageService.sendMessage(
+                    SendMessage.builder()
+                            .chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
+                                    new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
+                                    localeOrDefault))
+                            .parseMode(ParseMode.HTML)
+                            .build()
+            );
+        }
         LOGGER.debug("Success renew({},{})", userId, planId);
     }
 
