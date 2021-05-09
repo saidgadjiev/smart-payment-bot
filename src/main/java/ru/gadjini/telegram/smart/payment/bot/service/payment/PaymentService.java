@@ -7,6 +7,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.payment.bot.service.PaidSubscriptionApi;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -20,20 +21,27 @@ public class PaymentService {
 
     private SubscriptionProperties subscriptionProperties;
 
+    private PaidSubscriptionApi paidSubscriptionApi;
+
     @Autowired
     public PaymentService(PaidSubscriptionService paidSubscriptionService,
                           PaidSubscriptionPlanService paidSubscriptionPlanService,
-                          SubscriptionProperties subscriptionProperties) {
+                          SubscriptionProperties subscriptionProperties, PaidSubscriptionApi paidSubscriptionApi) {
         this.paidSubscriptionService = paidSubscriptionService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.subscriptionProperties = subscriptionProperties;
+        this.paidSubscriptionApi = paidSubscriptionApi;
     }
 
     public PaidSubscription processPayment(int userId, int planId) {
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
-        return paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
+        PaidSubscription paidSubscription = paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
                 userId, paidSubscriptionPlan.getId(), paidSubscriptionPlan.getPeriod());
+
+        paidSubscriptionApi.refreshSub(userId);
+
+        return paidSubscription;
     }
 
     public CheckoutValidationResult validateCheckout(int userId) {

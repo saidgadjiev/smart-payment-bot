@@ -8,6 +8,7 @@ Commands:
 start - restart the bot
 buy - buy subscription
 subscription - check subscription
+refreshsub - refresh subscription
 time - current utc time
 language - change language
 help - help
