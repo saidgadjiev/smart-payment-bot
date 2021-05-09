@@ -2,8 +2,8 @@ package ru.gadjini.telegram.smart.payment.bot.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("paid.subscription")
-public class PaidSubscriptionProperties {
+@ConfigurationProperties("paid.bot")
+public class PaidBotProperties {
 
     private String server;
 

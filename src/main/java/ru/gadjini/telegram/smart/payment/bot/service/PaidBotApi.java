@@ -11,22 +11,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.gadjini.telegram.smart.bot.commons.property.AuthProperties;
-import ru.gadjini.telegram.smart.payment.bot.property.PaidSubscriptionProperties;
+import ru.gadjini.telegram.smart.payment.bot.property.PaidBotProperties;
 
 @Service
-public class PaidSubscriptionApi {
+public class PaidBotApi {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PaidSubscriptionApi.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PaidBotApi.class);
 
     private RestTemplate restTemplate;
 
-    private PaidSubscriptionProperties paidSubscriptionProperties;
+    private PaidBotProperties paidSubscriptionProperties;
 
     private AuthProperties authProperties;
 
     @Autowired
-    public PaidSubscriptionApi(RestTemplate restTemplate, PaidSubscriptionProperties paidSubscriptionProperties,
-                               AuthProperties authProperties) {
+    public PaidBotApi(RestTemplate restTemplate, PaidBotProperties paidSubscriptionProperties,
+                      AuthProperties authProperties) {
         this.restTemplate = restTemplate;
         this.paidSubscriptionProperties = paidSubscriptionProperties;
         this.authProperties = authProperties;
