@@ -15,6 +15,8 @@ public class SmartPaymentMessagesProperties {
 
     public static final String PAY_COMMAND_DESCRIPTION = "pay.command.description";
 
+    public static final String PAY_TARGET_COMMAND_DESCRIPTION = "pay.target.command.description";
+
     public static final String MESSAGE_INVOICE_SENT_ANSWER = "message.invoice.sent.answer";
 
     public static final String BUY_COMMAND_DESCRIPTION = "buy.command.description";
@@ -24,4 +26,8 @@ public class SmartPaymentMessagesProperties {
     public static final String MESSAGE_PRE_CHECKOUT_ERROR = "message.pre.checkout.error";
 
     public static final String INVOICE_PAY_COMMAND_DESCRIPTION = "invoice.pay.command.description";
+
+    public static final String MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD = "message.choose.convenient.payment.method";
+
+    public static final String MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD_ANSWER = "message.choose.convenient.payment.method.answer";
 }

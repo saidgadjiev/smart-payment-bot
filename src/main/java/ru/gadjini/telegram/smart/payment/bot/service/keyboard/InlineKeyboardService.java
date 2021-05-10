@@ -28,14 +28,52 @@ public class InlineKeyboardService {
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
     }
 
-    public InlineKeyboardMarkup paymentKeyboard(List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+    public InlineKeyboardMarkup telegramPaymentKeyboard(List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentButton(paidSubscriptionPlan,
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.telegramPaymentButton(paidSubscriptionPlan,
                     telegramCurrencyConverter, locale)));
         });
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup payPalKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payPalPaymentButton(paymentUrl, paidSubscriptionPlan, locale)));
+        });
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup qiWiKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
+        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.qiWiPaymentButton(paymentUrl, paidSubscriptionPlan,
+                    telegramCurrencyConverter, locale)));
+        });
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup yooMoneyKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
+        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.yooMoneyPaymentButton(paymentUrl, paidSubscriptionPlan,
+                    telegramCurrencyConverter, locale)));
+        });
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
 
         return inlineKeyboardMarkup;
     }

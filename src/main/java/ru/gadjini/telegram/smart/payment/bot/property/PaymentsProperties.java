@@ -9,6 +9,12 @@ public class PaymentsProperties {
 
     private String liveToken;
 
+    private String qiwiUrl;
+
+    private String yoomoneyUrl;
+
+    private String paypalUrl;
+
     public String getTestToken() {
         return testToken;
     }
@@ -23,5 +29,29 @@ public class PaymentsProperties {
 
     public void setLiveToken(String liveToken) {
         this.liveToken = liveToken;
+    }
+
+    public String getQiwiUrl() {
+        return qiwiUrl;
+    }
+
+    public void setQiwiUrl(String qiwiUrl) {
+        this.qiwiUrl = qiwiUrl;
+    }
+
+    public String getYoomoneyUrl() {
+        return yoomoneyUrl;
+    }
+
+    public void setYoomoneyUrl(String yoomoneyUrl) {
+        this.yoomoneyUrl = yoomoneyUrl;
+    }
+
+    public String getPaypalUrl() {
+        return paypalUrl;
+    }
+
+    public void setPaypalUrl(String paypalUrl) {
+        this.paypalUrl = paypalUrl;
     }
 }

@@ -2,15 +2,17 @@ package ru.gadjini.telegram.smart.payment.bot.common;
 
 public enum SmartPaymentArg {
 
-    PLAN_ID("pli");
+    PLAN_ID("pli"),
+    PAYMENT_METHOD("pm"),
+    GO_BACK("gbc");
 
-    private String name;
+    private String key;
 
-    SmartPaymentArg(String name) {
-        this.name = name;
+    SmartPaymentArg(String key) {
+        this.key = key;
     }
 
-    public String getName() {
-        return name;
+    public String getKey() {
+        return key;
     }
 }

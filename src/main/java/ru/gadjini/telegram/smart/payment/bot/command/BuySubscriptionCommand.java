@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.methods.AnswerPreCheckoutQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendInvoice;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.payments.LabeledPrice;
@@ -41,6 +42,7 @@ import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
+import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
@@ -76,6 +78,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private TelegramCurrencyConverterFactory telegramCurrencyConverterFactory;
 
+    private PaymentMethodService paymentMethodService;
+
     private Gson gson;
 
     @Autowired
@@ -86,7 +90,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
                                   SubscriptionProperties subscriptionProperties,
-                                  TelegramCurrencyConverterFactory telegramCurrencyConverterFactory, Gson gson) {
+                                  TelegramCurrencyConverterFactory telegramCurrencyConverterFactory,
+                                  PaymentMethodService paymentMethodService, Gson gson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -98,6 +103,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.paymentService = paymentService;
         this.subscriptionProperties = subscriptionProperties;
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
+        this.paymentMethodService = paymentMethodService;
         this.gson = gson;
     }
 
@@ -170,15 +176,14 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void processMessage(Message message, String[] strings) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans();
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
                                 subscriptionProperties.getPaidBotName()
-                        }, locale))
+                        }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(inlineKeyboardService.paymentKeyboard(paidSubscriptionPlans, locale))
+                        .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(locale))
                         .build()
         );
     }
@@ -187,10 +192,9 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         LOGGER.debug("Start send invoice({})", callbackQuery.getFrom().getId());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(callbackQuery.getFrom().getId());
-        if (checkoutValidationResult.isValid()) {
+        if (validateSendInvoice(callbackQuery, locale)) {
             PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(
-                    requestParams.getInt(SmartPaymentArg.PLAN_ID.getName())
+                    requestParams.getInt(SmartPaymentArg.PLAN_ID.getKey())
             );
             SendInvoice invoice = createInvoice(callbackQuery.getFrom().getId(), paidSubscriptionPlan, locale);
 
@@ -202,23 +206,56 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                             .build()
             );
             LOGGER.debug("Send invoice({}, {})", callbackQuery.getFrom().getId(), paidSubscriptionPlan.getId());
-        } else {
-            messageService.sendAnswerCallbackQuery(
-                    AnswerCallbackQuery.builder()
-                            .callbackQueryId(callbackQuery.getId())
-                            .text(localisationService.getMessage(
-                                    SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
-                                    new Object[]{
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getSubscriptionEndDate())),
-                                            PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getNextCheckoutDate()))
-                                    },
-                                    locale))
-                            .showAlert(true)
-                            .cacheTime(getCheckoutInvalidAnswerCacheTime(checkoutValidationResult.getNextCheckoutDate()))
+        }
+    }
+
+    @Override
+    public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
+        if (requestParams.contains(SmartPaymentArg.PAYMENT_METHOD.getKey())) {
+            PaymentMethodService.PaymentMethod paymentMethod = PaymentMethodService.PaymentMethod
+                    .valueOf(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()));
+            LOGGER.debug("Payment method({},{})", callbackQuery.getFrom().getId(), paymentMethod.name());
+
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+            if (!validateSendInvoice(callbackQuery, locale)) {
+                return;
+            }
+            messageService.editMessage(
+                    EditMessageText.builder()
+                            .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
+                                    subscriptionProperties.getPaidBotName()
+                            }, locale) + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(paymentMethodService.getPaymentKeyboard(paymentMethod, locale))
                             .build()
             );
-            LOGGER.debug("Invalid send invoice({}, {}, {})", callbackQuery.getFrom().getId(),
-                    checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
+
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                            .text(paymentMethodService.getCallbackAnswer(paymentMethod, locale))
+                            .build()
+            );
+        } else if (requestParams.contains(SmartPaymentArg.GO_BACK.getKey())) {
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+            messageService.editMessage(
+                    EditMessageText.builder()
+                            .chatId(String.valueOf(callbackQuery.getFrom().getId()))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
+                                    subscriptionProperties.getPaidBotName()
+                            }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(locale))
+                            .build()
+            );
+
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD_ANSWER, locale))
+                            .build()
+            );
         }
     }
 
@@ -262,6 +299,32 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         }
 
         return sendInvoiceBuilder.build();
+    }
+
+    private boolean validateSendInvoice(CallbackQuery callbackQuery, Locale locale) {
+        PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(callbackQuery.getFrom().getId());
+
+        if (checkoutValidationResult.isValid()) {
+            return true;
+        }
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder()
+                        .callbackQueryId(callbackQuery.getId())
+                        .text(localisationService.getMessage(
+                                SmartPaymentMessagesProperties.MESSAGE_INVALID_CHECKOUT_DATE,
+                                new Object[]{
+                                        PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getSubscriptionEndDate())),
+                                        PaidSubscriptionService.PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(TimeUtils.toZonedDateTime(checkoutValidationResult.getNextCheckoutDate()))
+                                },
+                                locale))
+                        .showAlert(true)
+                        .cacheTime(getCheckoutInvalidAnswerCacheTime(checkoutValidationResult.getNextCheckoutDate()))
+                        .build()
+        );
+        LOGGER.debug("Invalid send invoice({}, {}, {})", callbackQuery.getFrom().getId(),
+                checkoutValidationResult.getNextCheckoutDate(), checkoutValidationResult.getSubscriptionEndDate());
+
+        return false;
     }
 
     private int normalizePrice(double price) {
