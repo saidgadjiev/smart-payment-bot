@@ -15,6 +15,8 @@ public class PaymentsProperties {
 
     private String paypalUrl;
 
+    private String cryptocurrencyUrl;
+
     public String getTestToken() {
         return testToken;
     }
@@ -53,5 +55,13 @@ public class PaymentsProperties {
 
     public void setPaypalUrl(String paypalUrl) {
         this.paypalUrl = paypalUrl;
+    }
+
+    public String getCryptocurrencyUrl() {
+        return cryptocurrencyUrl;
+    }
+
+    public void setCryptocurrencyUrl(String cryptocurrencyUrl) {
+        this.cryptocurrencyUrl = cryptocurrencyUrl;
     }
 }

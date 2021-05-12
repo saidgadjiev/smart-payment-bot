@@ -41,11 +41,11 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup payPalKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+    public InlineKeyboardMarkup nativeCurrencyKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payPalPaymentButton(paymentUrl, paidSubscriptionPlan, locale)));
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payNativeCurrencyButton(paymentUrl, paidSubscriptionPlan, locale)));
         });
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
 

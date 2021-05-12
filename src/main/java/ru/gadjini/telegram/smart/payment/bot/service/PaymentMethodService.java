@@ -59,10 +59,11 @@ public class PaymentMethodService {
             case YOOMONEY:
                 return inlineKeyboardService.yooMoneyKeyboard(paymentsProperties.getYoomoneyUrl(), paidSubscriptionPlans, locale);
             case PAYPAL:
-                return inlineKeyboardService.payPalKeyboard(paymentsProperties.getPaypalUrl(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getPaypalUrl(), paidSubscriptionPlans, locale);
             case QIWI:
                 return inlineKeyboardService.qiWiKeyboard(paymentsProperties.getQiwiUrl(), paidSubscriptionPlans, locale);
-            case TELEGRAM:
+            case CRYPTOCURRENCY:
+                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getCryptocurrencyUrl(), paidSubscriptionPlans, locale);
             default:
                 return inlineKeyboardService.telegramPaymentKeyboard(paidSubscriptionPlans, locale);
         }
@@ -84,7 +85,9 @@ public class PaymentMethodService {
 
         QIWI("RUB"),
 
-        YOOMONEY("RUB");
+        YOOMONEY("RUB"),
+
+        CRYPTOCURRENCY("USD");
 
         private final String currency;
 

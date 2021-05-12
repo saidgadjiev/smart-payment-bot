@@ -61,7 +61,7 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton payPalPaymentButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+    public InlineKeyboardButton payNativeCurrencyButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
