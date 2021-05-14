@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
 import ru.gadjini.telegram.smart.payment.bot.property.PaidBotProperties;
+import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 
 @Configuration
 public class SmartPaymentBotConfiguration {
@@ -14,8 +15,12 @@ public class SmartPaymentBotConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(SmartPaymentBotConfiguration.class);
 
     @Autowired
-    public SmartPaymentBotConfiguration(PaidBotProperties paidBotProperties) {
+    public SmartPaymentBotConfiguration(PaidBotProperties paidBotProperties, PaymentsProperties paymentsProperties) {
         LOGGER.debug("Paid bot server({})", paidBotProperties.getServer());
+        LOGGER.debug("Qiwi({})", paymentsProperties.getQiwiUrl());
+        LOGGER.debug("YooMoney({})", paymentsProperties.getYoomoneyUrl());
+        LOGGER.debug("PayPal({})", paymentsProperties.getPaypalUrl());
+        LOGGER.debug("Crypto({})", paymentsProperties.getCryptocurrencyUrl());
     }
 
     @Bean

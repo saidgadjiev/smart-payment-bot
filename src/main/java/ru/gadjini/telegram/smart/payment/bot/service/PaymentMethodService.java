@@ -7,6 +7,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.ButtonFactory;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
@@ -70,7 +71,11 @@ public class PaymentMethodService {
     }
 
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
-        return localisationService.getMessage(paymentMethod.name().toLowerCase() + ".payment.method.info", locale);
+        if (paymentMethod == PaymentMethod.TELEGRAM) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
+        }
+        return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
+                + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
     }
 
     public String getCallbackAnswer(PaymentMethod paymentMethod, Locale locale) {
