@@ -66,7 +66,7 @@ public class ButtonFactory {
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2), currency
+                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) + currency
                         },
                         locale)
         );
