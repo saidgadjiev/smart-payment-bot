@@ -61,17 +61,40 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton payNativeCurrencyButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+    public InlineKeyboardButton payNativeCurrencyButton(String paymentUrl, String currency, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                "$" + NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2)
+                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2), currency
                         },
                         locale)
         );
 
         inlineKeyboardButton.setUrl(paymentUrl);
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton paymentDetailsButton(PaymentMethodService.PaymentMethod paymentMethod,
+                                                     String currency, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
+                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
+                                .months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) +
+                                currency
+                        },
+                        locale)
+        );
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, SmartPaymentCommandNames.BUY)
+                        .add(SmartPaymentArg.PAYMENT_DETAILS.getKey(), true)
+                        .add(SmartPaymentArg.PAYMENT_METHOD.getKey(), paymentMethod.name())
+                        .add(SmartPaymentArg.GO_BACK.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;
     }

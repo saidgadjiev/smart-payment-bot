@@ -19,8 +19,8 @@ public class SmartPaymentBotConfiguration {
         LOGGER.debug("Paid bot server({})", paidBotProperties.getServer());
         LOGGER.debug("Qiwi({})", paymentsProperties.getQiwiUrl());
         LOGGER.debug("YooMoney({})", paymentsProperties.getYoomoneyUrl());
-        LOGGER.debug("PayPal({})", paymentsProperties.getPaypalUrl());
-        LOGGER.debug("Crypto({})", paymentsProperties.getCryptocurrencyUrl());
+        LOGGER.debug("BuyMeACoffee({})", paymentsProperties.getBuymeacoffeeUrl());
+        LOGGER.debug("Crypto({})", paymentsProperties.getUsdtWallet());
     }
 
     @Bean

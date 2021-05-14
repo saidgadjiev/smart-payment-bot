@@ -4,7 +4,8 @@ public enum SmartPaymentArg {
 
     PLAN_ID("pli"),
     PAYMENT_METHOD("pm"),
-    GO_BACK("gbc");
+    GO_BACK("gbc"),
+    PAYMENT_DETAILS("det");
 
     private String key;
 

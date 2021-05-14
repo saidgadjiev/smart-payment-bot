@@ -13,9 +13,9 @@ public class PaymentsProperties {
 
     private String yoomoneyUrl;
 
-    private String paypalUrl;
+    private String buymeacoffeeUrl;
 
-    private String cryptocurrencyUrl;
+    private String usdtWallet;
 
     public String getTestToken() {
         return testToken;
@@ -49,19 +49,19 @@ public class PaymentsProperties {
         this.yoomoneyUrl = yoomoneyUrl;
     }
 
-    public String getPaypalUrl() {
-        return paypalUrl;
+    public String getBuymeacoffeeUrl() {
+        return buymeacoffeeUrl;
     }
 
-    public void setPaypalUrl(String paypalUrl) {
-        this.paypalUrl = paypalUrl;
+    public void setBuymeacoffeeUrl(String buymeacoffeeUrl) {
+        this.buymeacoffeeUrl = buymeacoffeeUrl;
     }
 
-    public String getCryptocurrencyUrl() {
-        return cryptocurrencyUrl;
+    public String getUsdtWallet() {
+        return usdtWallet;
     }
 
-    public void setCryptocurrencyUrl(String cryptocurrencyUrl) {
-        this.cryptocurrencyUrl = cryptocurrencyUrl;
+    public void setUsdtWallet(String usdtWallet) {
+        this.usdtWallet = usdtWallet;
     }
 }

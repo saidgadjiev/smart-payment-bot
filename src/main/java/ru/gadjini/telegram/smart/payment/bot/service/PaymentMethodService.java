@@ -44,6 +44,15 @@ public class PaymentMethodService {
         this.paymentsProperties = paymentsProperties;
     }
 
+    public String getPaymentDetails(PaymentMethod paymentMethod, Locale locale) {
+        if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTO_PAYMENT_DETAILS,
+                    new Object[]{paymentsProperties.getUsdtWallet()}, locale);
+        }
+
+        return "-";
+    }
+
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
@@ -59,12 +68,14 @@ public class PaymentMethodService {
         switch (paymentMethod) {
             case YOOMONEY:
                 return inlineKeyboardService.yooMoneyKeyboard(paymentsProperties.getYoomoneyUrl(), paidSubscriptionPlans, locale);
-            case PAYPAL:
-                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getPaypalUrl(), paidSubscriptionPlans, locale);
+            case BUYMEACOFFEE:
+                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getBuymeacoffeeUrl(),
+                        PaymentMethod.BUYMEACOFFEE.getCurrency(), paidSubscriptionPlans, locale);
             case QIWI:
                 return inlineKeyboardService.qiWiKeyboard(paymentsProperties.getQiwiUrl(), paidSubscriptionPlans, locale);
             case CRYPTOCURRENCY:
-                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getCryptocurrencyUrl(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY,
+                        PaymentMethod.CRYPTOCURRENCY.getCurrency(), paidSubscriptionPlans, locale);
             default:
                 return inlineKeyboardService.telegramPaymentKeyboard(paidSubscriptionPlans, locale);
         }
@@ -73,6 +84,10 @@ public class PaymentMethodService {
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.TELEGRAM) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
+        } else if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTO_PAYMENT_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
         }
         return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
                 + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
@@ -86,13 +101,13 @@ public class PaymentMethodService {
 
         TELEGRAM(null),
 
-        PAYPAL("USD"),
+        BUYMEACOFFEE("$"),
 
         QIWI("RUB"),
 
         YOOMONEY("RUB"),
 
-        CRYPTOCURRENCY("USD");
+        CRYPTOCURRENCY("USDT");
 
         private final String currency;
 
