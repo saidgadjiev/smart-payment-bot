@@ -48,6 +48,9 @@ public class PaymentMethodService {
         if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTO_PAYMENT_DETAILS,
                     new Object[]{paymentsProperties.getUsdtWallet()}, locale);
+        } else if (paymentMethod == PaymentMethod.PERFECTMONEY) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_PERFECTMONEY_PAYMENT_DETAILS,
+                    new Object[]{paymentsProperties.getPerfectmoneyWallet()}, locale);
         }
 
         return "-";
@@ -76,6 +79,9 @@ public class PaymentMethodService {
             case CRYPTOCURRENCY:
                 return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY,
                         PaymentMethod.CRYPTOCURRENCY.getCurrency(), paidSubscriptionPlans, locale);
+            case PERFECTMONEY:
+                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.PERFECTMONEY,
+                        PaymentMethod.PERFECTMONEY.getCurrency(), paidSubscriptionPlans, locale);
             default:
                 return inlineKeyboardService.telegramPaymentKeyboard(paidSubscriptionPlans, locale);
         }
@@ -99,15 +105,17 @@ public class PaymentMethodService {
 
     public enum PaymentMethod {
 
-        TELEGRAM(null),
-
         BUYMEACOFFEE("$"),
 
         QIWI("RUB"),
 
         YOOMONEY("RUB"),
 
-        CRYPTOCURRENCY("USDT");
+        CRYPTOCURRENCY("USDT"),
+
+        PERFECTMONEY("$"),
+
+        TELEGRAM(null);
 
         private final String currency;
 

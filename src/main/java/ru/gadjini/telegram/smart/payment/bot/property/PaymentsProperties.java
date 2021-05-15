@@ -17,6 +17,8 @@ public class PaymentsProperties {
 
     private String usdtWallet;
 
+    private String perfectmoneyWallet;
+
     public String getTestToken() {
         return testToken;
     }
@@ -63,5 +65,13 @@ public class PaymentsProperties {
 
     public void setUsdtWallet(String usdtWallet) {
         this.usdtWallet = usdtWallet;
+    }
+
+    public String getPerfectmoneyWallet() {
+        return perfectmoneyWallet;
+    }
+
+    public void setPerfectmoneyWallet(String perfectmoneyWallet) {
+        this.perfectmoneyWallet = perfectmoneyWallet;
     }
 }

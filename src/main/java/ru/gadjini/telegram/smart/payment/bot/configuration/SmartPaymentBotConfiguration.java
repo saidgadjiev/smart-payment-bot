@@ -21,6 +21,7 @@ public class SmartPaymentBotConfiguration {
         LOGGER.debug("YooMoney({})", paymentsProperties.getYoomoneyUrl());
         LOGGER.debug("BuyMeACoffee({})", paymentsProperties.getBuymeacoffeeUrl());
         LOGGER.debug("Crypto({})", paymentsProperties.getUsdtWallet());
+        LOGGER.debug("PerfectMoney({})", paymentsProperties.getPerfectmoneyWallet());
     }
 
     @Bean

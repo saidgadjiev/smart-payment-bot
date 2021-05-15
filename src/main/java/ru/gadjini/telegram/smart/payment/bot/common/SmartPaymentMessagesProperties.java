@@ -42,4 +42,6 @@ public class SmartPaymentMessagesProperties {
     public static final String MESSAGE_PAYMENT_DETAILS_ANSWER = "message.payment.details.answer";
 
     public static final String MESSAGE_CRYPTO_PAYMENT_DETAILS = "message.crypto.payment.details";
+
+    public static final String MESSAGE_PERFECTMONEY_PAYMENT_DETAILS = "message.perfectmoney.payment.details";
 }
