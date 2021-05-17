@@ -214,6 +214,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         if (requestParams.contains(SmartPaymentArg.PAYMENT_DETAILS.getKey())) {
             PaymentMethodService.PaymentMethod paymentMethod = PaymentMethodService.PaymentMethod
                     .valueOf(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()));
+            LOGGER.debug("Payment details({})", paymentMethod);
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
             String paymentDetails = paymentMethodService.getPaymentDetails(paymentMethod, locale);
             messageService.sendMessage(
