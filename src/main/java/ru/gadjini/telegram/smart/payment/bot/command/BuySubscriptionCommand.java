@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.smart.payment.bot.command;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
@@ -80,7 +79,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private PaymentMethodService paymentMethodService;
 
-    private Gson gson;
+    private Jackson jackson;
 
     @Autowired
     public BuySubscriptionCommand(@TgMessageLimitsControl MessageService messageService,
@@ -91,7 +90,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
                                   SubscriptionProperties subscriptionProperties,
                                   TelegramCurrencyConverterFactory telegramCurrencyConverterFactory,
-                                  PaymentMethodService paymentMethodService, Gson gson) {
+                                  PaymentMethodService paymentMethodService, Jackson jackson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
@@ -104,7 +103,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.subscriptionProperties = subscriptionProperties;
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
         this.paymentMethodService = paymentMethodService;
-        this.gson = gson;
+        this.jackson = jackson;
     }
 
     @Override
@@ -113,7 +112,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         Locale locale = userService.getLocaleOrDefault(preCheckoutQuery.getFrom().getId());
 
         try {
-            InvoicePayload invoicePayload = gson.fromJson(preCheckoutQuery.getInvoicePayload(), InvoicePayload.class);
+            InvoicePayload invoicePayload = jackson.readValue(preCheckoutQuery.getInvoicePayload(), InvoicePayload.class);
             PaymentService.CheckoutValidationResult checkoutValidationResult = paymentService.validateCheckout(preCheckoutQuery.getFrom().getId());
 
             if (checkoutValidationResult.isValid()) {
@@ -158,7 +157,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void successfulPayment(Message message) {
         LOGGER.debug("Start successfulPayment({})", message.getFrom().getId());
-        InvoicePayload invoicePayload = gson.fromJson(message.getSuccessfulPayment().getInvoicePayload(), InvoicePayload.class);
+        InvoicePayload invoicePayload = jackson.readValue(message.getSuccessfulPayment().getInvoicePayload(), InvoicePayload.class);
         PaidSubscription paidSubscription = paymentService.processPayment(message.getFrom().getId(), invoicePayload.getPlanId());
         Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
@@ -302,18 +301,10 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .description(description)
                 .providerToken(getPaymentProviderToken())
                 .currency(subscriptionProperties.getPaymentCurrency())
-                .payload(gson.toJson(new InvoicePayload(paidSubscriptionPlan.getId())))
+                .payload(jackson.writeValueAsString(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
                 .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))
                 .startParameter("SmartPayment");
-
-        if (subscriptionProperties.isPaymentDescription()) {
-            JsonObject providerData = new JsonObject();
-            JsonObject data = new JsonObject();
-            providerData.add("provider_data", data);
-            data.addProperty("desc", description);
-            sendInvoiceBuilder.providerData(gson.toJson(providerData));
-        }
 
         return sendInvoiceBuilder.build();
     }
