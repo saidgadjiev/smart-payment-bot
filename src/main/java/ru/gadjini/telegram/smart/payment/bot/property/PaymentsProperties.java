@@ -13,7 +13,9 @@ public class PaymentsProperties {
 
     private String yoomoneyUrl;
 
-    private String buymeacoffeeUrl;
+    private String paypalUrl;
+
+    private String razorpayUrl;
 
     private String usdtWallet;
 
@@ -51,12 +53,12 @@ public class PaymentsProperties {
         this.yoomoneyUrl = yoomoneyUrl;
     }
 
-    public String getBuymeacoffeeUrl() {
-        return buymeacoffeeUrl;
+    public String getPaypalUrl() {
+        return paypalUrl;
     }
 
-    public void setBuymeacoffeeUrl(String buymeacoffeeUrl) {
-        this.buymeacoffeeUrl = buymeacoffeeUrl;
+    public void setPaypalUrl(String paypalUrl) {
+        this.paypalUrl = paypalUrl;
     }
 
     public String getUsdtWallet() {
@@ -73,5 +75,13 @@ public class PaymentsProperties {
 
     public void setPerfectmoneyWallet(String perfectmoneyWallet) {
         this.perfectmoneyWallet = perfectmoneyWallet;
+    }
+
+    public String getRazorpayUrl() {
+        return razorpayUrl;
+    }
+
+    public void setRazorpayUrl(String razorpayUrl) {
+        this.razorpayUrl = razorpayUrl;
     }
 }

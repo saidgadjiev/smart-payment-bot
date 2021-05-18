@@ -71,9 +71,12 @@ public class PaymentMethodService {
         switch (paymentMethod) {
             case YOOMONEY:
                 return inlineKeyboardService.yooMoneyKeyboard(paymentsProperties.getYoomoneyUrl(), paidSubscriptionPlans, locale);
-            case BUYMEACOFFEE:
-                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getBuymeacoffeeUrl(),
-                        PaymentMethod.BUYMEACOFFEE.getCurrency(), paidSubscriptionPlans, locale);
+            case PAYPAL:
+                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getPaypalUrl(),
+                        PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
+            case RAZORPAY:
+                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getRazorpayUrl(),
+                        PaymentMethod.RAZORPAY.getCurrency(), paidSubscriptionPlans, locale);
             case QIWI:
                 return inlineKeyboardService.qiWiKeyboard(paymentsProperties.getQiwiUrl(), paidSubscriptionPlans, locale);
             case CRYPTOCURRENCY:
@@ -105,7 +108,9 @@ public class PaymentMethodService {
 
     public enum PaymentMethod {
 
-        BUYMEACOFFEE("$"),
+        PAYPAL("$"),
+
+        RAZORPAY("$"),
 
         QIWI("RUB"),
 
