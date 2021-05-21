@@ -215,14 +215,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     .valueOf(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()));
             LOGGER.debug("Payment details({})", paymentMethod);
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-            String paymentDetails = paymentMethodService.getPaymentDetails(paymentMethod, locale);
-            messageService.sendMessage(
-                    SendMessage.builder()
-                            .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                            .text(paymentDetails)
-                            .parseMode(ParseMode.HTML)
-                            .build()
-            );
+            paymentMethodService.sendPaymentDetails(callbackQuery.getFrom().getId(), paymentMethod, locale);
             messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQuery.getId())
                     .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_PAYMENT_DETAILS_ANSWER, locale))

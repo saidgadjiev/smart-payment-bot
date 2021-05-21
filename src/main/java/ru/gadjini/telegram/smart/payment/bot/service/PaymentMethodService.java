@@ -1,11 +1,19 @@
 package ru.gadjini.telegram.smart.payment.bot.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
@@ -30,30 +38,45 @@ public class PaymentMethodService {
 
     private PaymentsProperties paymentsProperties;
 
+    private MessageService messageService;
+
+    private MediaMessageService mediaMessageService;
+
     @Autowired
     public PaymentMethodService(InlineKeyboardService inlineKeyboardService,
                                 SmartInlineKeyboardService smartInlineKeyboardService,
                                 LocalisationService localisationService, ButtonFactory buttonFactory,
                                 PaidSubscriptionPlanService paidSubscriptionPlanService,
-                                PaymentsProperties paymentsProperties) {
+                                PaymentsProperties paymentsProperties, @TgMessageLimitsControl MessageService messageService,
+                                @Qualifier("mediaLimits") MediaMessageService mediaMessageService) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.localisationService = localisationService;
         this.buttonFactory = buttonFactory;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.paymentsProperties = paymentsProperties;
+        this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
     }
 
-    public String getPaymentDetails(PaymentMethod paymentMethod, Locale locale) {
+    public void sendPaymentDetails(long chatId, PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTO_PAYMENT_DETAILS,
-                    new Object[]{paymentsProperties.getUsdtWallet()}, locale);
+            mediaMessageService.sendPhoto(
+                    SendPhoto.builder()
+                            .chatId(String.valueOf(chatId))
+                            .photo(new InputFile(paymentsProperties.getUsdtWallet()))
+                            .build()
+            );
         } else if (paymentMethod == PaymentMethod.PERFECTMONEY) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_PERFECTMONEY_PAYMENT_DETAILS,
-                    new Object[]{paymentsProperties.getPerfectmoneyWallet()}, locale);
+            messageService.sendMessage(
+                    SendMessage.builder()
+                            .chatId(String.valueOf(chatId))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_PERFECTMONEY_PAYMENT_DETAILS,
+                                    new Object[]{paymentsProperties.getPerfectmoneyWallet()}, locale))
+                            .parseMode(ParseMode.HTML)
+                            .build()
+            );
         }
-
-        return "-";
     }
 
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
