@@ -1,8 +1,12 @@
-package ru.gadjini.telegram.smart.payment.bot.service.payment;
+package ru.gadjini.telegram.smart.payment.bot.model;
 
 public class InvoicePayload {
 
     private int planId;
+
+    public InvoicePayload() {
+
+    }
 
     public InvoicePayload(int planId) {
         this.planId = planId;

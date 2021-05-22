@@ -43,7 +43,7 @@ import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperti
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.smart.payment.bot.service.payment.InvoicePayload;
+import ru.gadjini.telegram.smart.payment.bot.model.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
 import java.time.*;
