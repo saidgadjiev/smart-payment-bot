@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardServ
 
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 @Service
 public class PaymentMethodService {
@@ -82,7 +83,7 @@ public class PaymentMethodService {
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
-        for (PaymentMethod value : PaymentMethod.values()) {
+        for (PaymentMethod value : PaymentMethod.activeValues()) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(value, locale)));
         }
 
@@ -95,6 +96,7 @@ public class PaymentMethodService {
             case YOOMONEY:
                 return inlineKeyboardService.yooMoneyKeyboard(paymentsProperties.getYoomoneyUrl(), paidSubscriptionPlans, locale);
             case PAYPAL:
+            case BUYMEACOFFEE:
                 return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
             case RAZORPAY:
@@ -131,28 +133,41 @@ public class PaymentMethodService {
 
     public enum PaymentMethod {
 
-        PAYPAL("$"),
+        PAYPAL("$", true),
 
-        RAZORPAY("$"),
+        BUYMEACOFFEE("$", false),
 
-        QIWI("RUB"),
+        RAZORPAY("$", true),
 
-        YOOMONEY("RUB"),
+        QIWI("RUB", true),
 
-        CRYPTOCURRENCY("USDT"),
+        YOOMONEY("RUB", true),
 
-        PERFECTMONEY("$"),
+        CRYPTOCURRENCY("USDT", true),
 
-        TELEGRAM(null);
+        PERFECTMONEY("$", true),
+
+        TELEGRAM(null, true);
 
         private final String currency;
 
-        PaymentMethod(String currency) {
+        private boolean active;
+
+        PaymentMethod(String currency, boolean active) {
             this.currency = currency;
+            this.active = active;
         }
 
         public String getCurrency() {
             return currency;
+        }
+
+        public boolean isActive() {
+            return active;
+        }
+
+        public static PaymentMethod[] activeValues() {
+            return Stream.of(values()).filter(PaymentMethod::isActive).toArray(PaymentMethod[]::new);
         }
     }
 }
