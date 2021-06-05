@@ -282,7 +282,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         LOGGER.debug("Create new invoice({})", userId);
         double usd = paidSubscriptionPlan.getPrice();
         TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
-        double targetPrice = NumberUtils.round(converter.convertTo(usd, subscriptionProperties.getPaymentCurrency()), 2);
+        double targetPrice = NumberUtils.round(converter.convertTo(usd, PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency()), 2);
         String description = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
                 timeDeclensionProvider.getService(locale.getLanguage()).months(paidSubscriptionPlan.getPeriod().getMonths()),
                 subscriptionProperties.getPaidBotName()
@@ -293,7 +293,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
                 .description(description)
                 .providerToken(getPaymentProviderToken())
-                .currency(subscriptionProperties.getPaymentCurrency())
+                .currency(PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency())
                 .payload(jackson.writeValueAsString(new InvoicePayload(paidSubscriptionPlan.getId())))
                 .prices(List.of(new LabeledPrice("Pay", normalizePrice(targetPrice))))
                 .replyMarkup(inlineKeyboardService.invoiceKeyboard(usd, targetPrice, locale))

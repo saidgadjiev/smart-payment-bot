@@ -57,8 +57,10 @@ public class InlineKeyboardService {
                                                        String currency, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
+        TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(method, currency, paidSubscriptionPlan, locale)));
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(method, currency,
+                    telegramCurrencyConverter, paidSubscriptionPlan, locale)));
         });
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
 

@@ -118,13 +118,11 @@ public class PaymentMethodService {
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.TELEGRAM) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
-        } else if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTOCURRENCY_APPS, locale);
         }
+
         return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
+                + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n"
+                + localisationService.getMessage("message." + paymentMethod.name().toLowerCase() + ".apps", locale);
     }
 
     public String getCallbackAnswer(PaymentMethod paymentMethod, Locale locale) {
@@ -147,7 +145,7 @@ public class PaymentMethodService {
 
         PERFECTMONEY("$", true),
 
-        TELEGRAM(null, true);
+        TELEGRAM("UAH", true);
 
         private final String currency;
 

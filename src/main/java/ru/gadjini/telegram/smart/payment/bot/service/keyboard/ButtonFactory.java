@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -42,13 +43,13 @@ public class ButtonFactory {
     public InlineKeyboardButton telegramPaymentButton(PaidSubscriptionPlan paidSubscriptionPlan,
                                                       TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
         double usd = paidSubscriptionPlan.getPrice();
-        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), subscriptionProperties.getPaymentCurrency());
+        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency());
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(targetPrice, 2), subscriptionProperties.getPaymentCurrency(),
+                                NumberUtils.toString(targetPrice, 2), PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency(),
                                 NumberUtils.toString(usd, 2)},
                         locale)
         );
@@ -77,14 +78,17 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton paymentDetailsButton(PaymentMethodService.PaymentMethod paymentMethod,
-                                                     String currency, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+                                                     String currency, TelegramCurrencyConverter telegramCurrencyConverter,
+                                                     PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+        double usd = paidSubscriptionPlan.getPrice();
+        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), currency);
+
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
+                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
                         new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
                                 .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) +
-                                currency
-                        },
+                                NumberUtils.toString(targetPrice, 2), currency,
+                                NumberUtils.toString(usd, 2)},
                         locale)
         );
 
@@ -156,7 +160,7 @@ public class ButtonFactory {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(SmartPaymentMessagesProperties.INVOICE_PAY_COMMAND_DESCRIPTION,
                         new Object[]{NumberUtils.toString(targetPrice, 2),
-                                subscriptionProperties.getPaymentCurrency(), NumberUtils.toString(usd, 2)},
+                                PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency(), NumberUtils.toString(usd, 2)},
                         locale));
 
         inlineKeyboardButton.setPay(true);
