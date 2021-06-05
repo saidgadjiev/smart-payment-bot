@@ -15,6 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyCo
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
+import ru.gadjini.telegram.smart.payment.bot.common.CurrencyConstants;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
@@ -91,7 +92,7 @@ public class ButtonFactory {
     public InlineKeyboardButton paymentUrlPaymentButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan,
                                                         String currency, TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton;
-        if (TgConstants.USD_CURRENCY.equals(currency)) {
+        if (CurrencyConstants.USD_SYMBOL.equals(currency)) {
             inlineKeyboardButton = new InlineKeyboardButton(
                     localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
                             new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
