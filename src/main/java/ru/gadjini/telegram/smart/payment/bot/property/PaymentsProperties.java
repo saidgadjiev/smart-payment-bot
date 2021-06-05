@@ -19,6 +19,8 @@ public class PaymentsProperties {
 
     private String usdtWallet;
 
+    private String osonWallet;
+
     private String perfectmoneyWallet;
 
     public String getTestToken() {
@@ -83,5 +85,13 @@ public class PaymentsProperties {
 
     public void setRazorpayUrl(String razorpayUrl) {
         this.razorpayUrl = razorpayUrl;
+    }
+
+    public String getOsonWallet() {
+        return osonWallet;
+    }
+
+    public void setOsonWallet(String osonWallet) {
+        this.osonWallet = osonWallet;
     }
 }

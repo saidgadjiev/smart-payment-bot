@@ -68,6 +68,13 @@ public class PaymentMethodService {
                             .photo(new InputFile(paymentsProperties.getUsdtWallet()))
                             .build()
             );
+        } else if (paymentMethod == PaymentMethod.OSON) {
+            mediaMessageService.sendPhoto(
+                    SendPhoto.builder()
+                            .chatId(String.valueOf(chatId))
+                            .photo(new InputFile(paymentsProperties.getOsonWallet()))
+                            .build()
+            );
         } else if (paymentMethod == PaymentMethod.PERFECTMONEY) {
             messageService.sendMessage(
                     SendMessage.builder()
@@ -108,6 +115,8 @@ public class PaymentMethodService {
                         PaymentMethod.QIWI.getCurrency(), paidSubscriptionPlans, locale);
             case CRYPTOCURRENCY:
                 return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY, paidSubscriptionPlans, locale);
+            case OSON:
+                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.OSON, paidSubscriptionPlans, locale);
             case PERFECTMONEY:
                 return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.PERFECTMONEY, paidSubscriptionPlans, locale);
             default:
@@ -138,6 +147,8 @@ public class PaymentMethodService {
         RAZORPAY("$", true),
 
         QIWI("RUB", true),
+
+        OSON("UZS", true),
 
         YOOMONEY("RUB", true),
 
