@@ -37,7 +37,7 @@ public class SmartPaymentMessagesProperties {
 
     public static final String MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS = "message.subscription.renew.message.address";
 
-    public static final String MESSAGE_CRYPTO_PAYMENT_INFO = "message.crypto.payment.info";
+    public static final String MESSAGE_CRYPTOCURRENCY_APPS = "message.cryptocurrency.apps";
 
     public static final String MESSAGE_PAYMENT_DETAILS_ANSWER = "message.payment.details.answer";
 
