@@ -6,9 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
-import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
@@ -30,15 +28,10 @@ public class ButtonFactory {
 
     private SubscriptionTimeDeclensionProvider timeDeclensionProvider;
 
-    private SubscriptionProperties subscriptionProperties;
-
     @Autowired
-    public ButtonFactory(LocalisationService localisationService,
-                         SubscriptionTimeDeclensionProvider timeDeclensionProvider,
-                         SubscriptionProperties subscriptionProperties) {
+    public ButtonFactory(LocalisationService localisationService, SubscriptionTimeDeclensionProvider timeDeclensionProvider) {
         this.localisationService = localisationService;
         this.timeDeclensionProvider = timeDeclensionProvider;
-        this.subscriptionProperties = subscriptionProperties;
     }
 
     public InlineKeyboardButton telegramPaymentButton(PaidSubscriptionPlan paidSubscriptionPlan,
@@ -66,17 +59,29 @@ public class ButtonFactory {
     public InlineKeyboardButton paymentDetailsButton(PaymentMethodService.PaymentMethod paymentMethod,
                                                      String currency, TelegramCurrencyConverter telegramCurrencyConverter,
                                                      PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
-        double usd = paidSubscriptionPlan.getPrice();
-        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), currency);
+        InlineKeyboardButton inlineKeyboardButton;
+        if (CurrencyConstants.USD_SYMBOL.equals(currency)) {
+            inlineKeyboardButton = new InlineKeyboardButton(
+                    localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
+                            new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
+                                    .months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                    NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) + currency
+                            },
+                            locale)
+            );
+        } else {
+            double usd = paidSubscriptionPlan.getPrice();
+            double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), currency);
 
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
-                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
-                                .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(targetPrice, 2), currency,
-                                NumberUtils.toString(usd, 2)},
-                        locale)
-        );
+            inlineKeyboardButton = new InlineKeyboardButton(
+                    localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
+                            new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
+                                    .months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                    NumberUtils.toString(targetPrice, 2), currency,
+                                    NumberUtils.toString(usd, 2)},
+                            locale)
+            );
+        }
 
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
