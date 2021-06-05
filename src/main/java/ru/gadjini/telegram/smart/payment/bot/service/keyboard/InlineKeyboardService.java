@@ -42,24 +42,13 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup nativeCurrencyKeyboard(String paymentUrl, String currency, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-
-        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.payNativeCurrencyButton(paymentUrl, currency, paidSubscriptionPlan, locale)));
-        });
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
     public InlineKeyboardMarkup paymentDetailsKeyboard(PaymentMethodService.PaymentMethod method,
-                                                       String currency, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+                                                       List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(method, currency,
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(method, method.getCurrency(),
                     telegramCurrencyConverter, paidSubscriptionPlan, locale)));
         });
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
@@ -67,26 +56,14 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup qiWiKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(String paymentUrl, String currency, List<PaidSubscriptionPlan> paidSubscriptionPlans,
+                                                                Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.qiWiPaymentButton(paymentUrl, paidSubscriptionPlan,
-                    telegramCurrencyConverter, locale)));
-        });
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup yooMoneyKeyboard(String paymentUrl, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-
-        TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
-        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.yooMoneyPaymentButton(paymentUrl, paidSubscriptionPlan,
-                    telegramCurrencyConverter, locale)));
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentUrlPaymentButton(paymentUrl, paidSubscriptionPlan,
+                    currency, telegramCurrencyConverter, locale)));
         });
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
 

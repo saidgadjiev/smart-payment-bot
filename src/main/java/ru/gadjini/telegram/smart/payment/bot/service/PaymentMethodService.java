@@ -94,22 +94,22 @@ public class PaymentMethodService {
         List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans();
         switch (paymentMethod) {
             case YOOMONEY:
-                return inlineKeyboardService.yooMoneyKeyboard(paymentsProperties.getYoomoneyUrl(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getYoomoneyUrl(),
+                        PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale);
             case PAYPAL:
             case BUYMEACOFFEE:
-                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getPaypalUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
             case RAZORPAY:
-                return inlineKeyboardService.nativeCurrencyKeyboard(paymentsProperties.getRazorpayUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRazorpayUrl(),
                         PaymentMethod.RAZORPAY.getCurrency(), paidSubscriptionPlans, locale);
             case QIWI:
-                return inlineKeyboardService.qiWiKeyboard(paymentsProperties.getQiwiUrl(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getQiwiUrl(),
+                        PaymentMethod.QIWI.getCurrency(), paidSubscriptionPlans, locale);
             case CRYPTOCURRENCY:
-                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY,
-                        PaymentMethod.CRYPTOCURRENCY.getCurrency(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY, paidSubscriptionPlans, locale);
             case PERFECTMONEY:
-                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.PERFECTMONEY,
-                        PaymentMethod.PERFECTMONEY.getCurrency(), paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.PERFECTMONEY, paidSubscriptionPlans, locale);
             default:
                 return inlineKeyboardService.telegramPaymentKeyboard(paidSubscriptionPlans, locale);
         }

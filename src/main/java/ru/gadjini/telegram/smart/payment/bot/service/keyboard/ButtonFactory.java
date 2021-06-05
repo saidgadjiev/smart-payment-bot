@@ -62,21 +62,6 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton payNativeCurrencyButton(String paymentUrl, String currency, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
-                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
-                                .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) + currency
-                        },
-                        locale)
-        );
-
-        inlineKeyboardButton.setUrl(paymentUrl);
-
-        return inlineKeyboardButton;
-    }
-
     public InlineKeyboardButton paymentDetailsButton(PaymentMethodService.PaymentMethod paymentMethod,
                                                      String currency, TelegramCurrencyConverter telegramCurrencyConverter,
                                                      PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
@@ -103,40 +88,31 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton qiWiPaymentButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan,
-                                                  TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
-        double usd = paidSubscriptionPlan.getPrice();
-        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(),
-                PaymentMethodService.PaymentMethod.QIWI.getCurrency());
+    public InlineKeyboardButton paymentUrlPaymentButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan,
+                                                        String currency, TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton;
+        if (TgConstants.USD_CURRENCY.equals(currency)) {
+            inlineKeyboardButton = new InlineKeyboardButton(
+                    localisationService.getMessage(SmartPaymentMessagesProperties.PAY_TARGET_COMMAND_DESCRIPTION,
+                            new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
+                                    .months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                    NumberUtils.toString(paidSubscriptionPlan.getPrice(), 2) + currency
+                            },
+                            locale)
+            );
+        } else {
+            double usd = paidSubscriptionPlan.getPrice();
+            double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(), currency);
 
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
-                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
-                                .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(targetPrice, 2), PaymentMethodService.PaymentMethod.QIWI.getCurrency(),
-                                NumberUtils.toString(usd, 2)},
-                        locale)
-        );
-
-        inlineKeyboardButton.setUrl(paymentUrl);
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton yooMoneyPaymentButton(String paymentUrl, PaidSubscriptionPlan paidSubscriptionPlan,
-                                                      TelegramCurrencyConverter telegramCurrencyConverter, Locale locale) {
-        double usd = paidSubscriptionPlan.getPrice();
-        double targetPrice = telegramCurrencyConverter.convertTo(paidSubscriptionPlan.getPrice(),
-                PaymentMethodService.PaymentMethod.YOOMONEY.getCurrency());
-
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
-                        new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
-                                .months(paidSubscriptionPlan.getPeriod().getMonths()),
-                                NumberUtils.toString(targetPrice, 2), PaymentMethodService.PaymentMethod.YOOMONEY.getCurrency(),
-                                NumberUtils.toString(usd, 2)},
-                        locale)
-        );
+            inlineKeyboardButton = new InlineKeyboardButton(
+                    localisationService.getMessage(SmartPaymentMessagesProperties.PAY_COMMAND_DESCRIPTION,
+                            new Object[]{timeDeclensionProvider.getService(locale.getLanguage())
+                                    .months(paidSubscriptionPlan.getPeriod().getMonths()),
+                                    NumberUtils.toString(targetPrice, 2), currency,
+                                    NumberUtils.toString(usd, 2)},
+                            locale)
+            );
+        }
 
         inlineKeyboardButton.setUrl(paymentUrl);
 
