@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 import java.util.Locale;
 
 @Service
+@SuppressWarnings("CPD-START")
 public class ButtonFactory {
 
     private LocalisationService localisationService;
