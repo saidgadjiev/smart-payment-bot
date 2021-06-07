@@ -141,7 +141,8 @@ public class PaymentMethodService {
         } else if (paymentMethod == PaymentMethod.ROBOKASSA) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO, locale) + "\n"
                     + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHODS, locale);
         }
 
         return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
