@@ -7,4 +7,6 @@ public class CurrencyConstants {
     }
 
     public static final String USD_SYMBOL = "$";
+
+    public static final String RUB = "RUB";
 }

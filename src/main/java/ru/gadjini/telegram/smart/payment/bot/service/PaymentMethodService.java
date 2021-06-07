@@ -11,10 +11,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.payment.bot.common.CurrencyConstants;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.ButtonFactory;
@@ -22,10 +24,16 @@ import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardServ
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Service
 public class PaymentMethodService {
+
+    private static final Consumer<TelegramCurrencyConverter> RUB_CUSTOMIZER = telegramCurrencyConverter -> {
+        telegramCurrencyConverter.getTelegramCurrencies()
+                .getCurrencies().get(CurrencyConstants.RUB).setMinAmount(7300);
+    };
 
     private InlineKeyboardService inlineKeyboardService;
 
@@ -102,17 +110,20 @@ public class PaymentMethodService {
         switch (paymentMethod) {
             case YOOMONEY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getYoomoneyUrl(),
-                        PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale);
+                        PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case PAYPAL:
             case BUYMEACOFFEE:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
+            case ROBOKASSA:
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRobokassaUrl(locale),
+                        PaymentMethod.ROBOKASSA.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRazorpayUrl(),
                         PaymentMethod.RAZORPAY.getCurrency(), paidSubscriptionPlans, locale);
             case QIWI:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getQiwiUrl(),
-                        PaymentMethod.QIWI.getCurrency(), paidSubscriptionPlans, locale);
+                        PaymentMethod.QIWI.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case CRYPTOCURRENCY:
                 return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY, paidSubscriptionPlans, locale);
             case OSON:
@@ -127,6 +138,10 @@ public class PaymentMethodService {
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.TELEGRAM) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
+        } else if (paymentMethod == PaymentMethod.ROBOKASSA) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale);
         }
 
         return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
@@ -139,6 +154,8 @@ public class PaymentMethodService {
     }
 
     public enum PaymentMethod {
+
+        ROBOKASSA("RUB", true),
 
         PAYPAL("$", true),
 

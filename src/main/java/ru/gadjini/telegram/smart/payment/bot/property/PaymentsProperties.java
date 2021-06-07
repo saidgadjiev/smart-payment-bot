@@ -1,6 +1,10 @@
 package ru.gadjini.telegram.smart.payment.bot.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+
+import java.util.Locale;
+import java.util.Map;
 
 @ConfigurationProperties("payments")
 public class PaymentsProperties {
@@ -22,6 +26,8 @@ public class PaymentsProperties {
     private String osonWallet;
 
     private String perfectmoneyWallet;
+
+    private Map<String, String> robokassa;
 
     public String getTestToken() {
         return testToken;
@@ -93,5 +99,17 @@ public class PaymentsProperties {
 
     public void setOsonWallet(String osonWallet) {
         this.osonWallet = osonWallet;
+    }
+
+    public Map<String, String> getRobokassa() {
+        return robokassa;
+    }
+
+    public void setRobokassa(Map<String, String> robokassa) {
+        this.robokassa = robokassa;
+    }
+
+    public String getRobokassaUrl(Locale locale) {
+        return robokassa.getOrDefault(locale.getLanguage().toLowerCase(), robokassa.get(LocalisationService.EN_LOCALE));
     }
 }
