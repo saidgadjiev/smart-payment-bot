@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.smart.payment.bot.service;
 
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -9,7 +8,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -25,10 +23,11 @@ import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.ButtonFactory;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Service
 public class PaymentMethodService {
@@ -100,7 +99,6 @@ public class PaymentMethodService {
 
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        List<PaymentMethod> paymentMethods = Arrays.asList(PaymentMethod.values());
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.BANK_CARD, locale)));
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.APPLE_PAY, locale),
