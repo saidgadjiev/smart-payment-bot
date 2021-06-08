@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -211,21 +212,27 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
     @Override
     public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(SmartPaymentArg.PAYMENT_DETAILS.getKey())) {
-            PaymentMethodService.PaymentMethod paymentMethod = PaymentMethodService.PaymentMethod
-                    .valueOf(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()));
-            LOGGER.debug("Payment details({})", paymentMethod);
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+            PaymentMethodService.PaymentMethod paymentMethod = PaymentMethodService.PaymentMethod
+                    .getValue(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()), () -> {
+                        return new UserException(localisationService.getMessage(
+                                SmartPaymentMessagesProperties.MESSAGE_INACTIVE_PAYMENT_METHOD, locale));
+                    });
+            LOGGER.debug("Payment details({})", paymentMethod);
             paymentMethodService.sendPaymentDetails(callbackQuery.getFrom().getId(), paymentMethod, locale);
             messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder()
                     .callbackQueryId(callbackQuery.getId())
                     .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_PAYMENT_DETAILS_ANSWER, locale))
                     .build());
         } else if (requestParams.contains(SmartPaymentArg.PAYMENT_METHOD.getKey())) {
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
             PaymentMethodService.PaymentMethod paymentMethod = PaymentMethodService.PaymentMethod
-                    .valueOf(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()));
+                    .getValue(requestParams.getString(SmartPaymentArg.PAYMENT_METHOD.getKey()), () -> {
+                        return new UserException(localisationService.getMessage(
+                                SmartPaymentMessagesProperties.MESSAGE_INACTIVE_PAYMENT_METHOD, locale));
+                    });
             LOGGER.debug("Payment method({},{})", callbackQuery.getFrom().getId(), paymentMethod.name());
 
-            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
             if (!validateSendInvoice(callbackQuery, locale)) {
                 return;
             }

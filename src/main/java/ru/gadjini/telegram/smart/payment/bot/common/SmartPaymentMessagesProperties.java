@@ -44,4 +44,6 @@ public class SmartPaymentMessagesProperties {
     public static final String MESSAGE_PERFECTMONEY_PAYMENT_DETAILS = "message.perfectmoney.payment.details";
 
     public static final String MESSAGE_ROBOKASSA_PAYMENT_METHODS = "message.robokassa.payment.methods";
+
+    public static final String MESSAGE_INACTIVE_PAYMENT_METHOD = "message.inactive.payment.method";
 }

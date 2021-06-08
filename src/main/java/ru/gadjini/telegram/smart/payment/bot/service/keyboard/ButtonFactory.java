@@ -128,7 +128,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton paymentMethod(PaymentMethodService.PaymentMethod paymentMethod, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(paymentMethod.name().toLowerCase() + ".payment.method", locale));
+                localisationService.getMessage(paymentMethod.localisationPaymentMethodName() + ".payment.method", locale));
 
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()

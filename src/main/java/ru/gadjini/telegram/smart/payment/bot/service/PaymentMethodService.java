@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.smart.payment.bot.service;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -8,8 +9,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
@@ -22,9 +25,9 @@ import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.ButtonFactory;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Service
@@ -97,10 +100,28 @@ public class PaymentMethodService {
 
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<PaymentMethod> paymentMethods = Arrays.asList(PaymentMethod.values());
 
-        for (PaymentMethod value : PaymentMethod.activeValues()) {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(value, locale)));
-        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.BANK_CARD, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.APPLE_PAY, locale),
+                buttonFactory.paymentMethod(PaymentMethod.GOOGLE_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.YANDEX_PAY, locale),
+                buttonFactory.paymentMethod(PaymentMethod.SAMSUNG_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.PAYPAL, locale),
+                buttonFactory.paymentMethod(PaymentMethod.RAZORPAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.QIWI, locale),
+                buttonFactory.paymentMethod(PaymentMethod.YOOMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.OSON, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.CRYPTOCURRENCY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.PERFECTMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.TELEGRAM, locale)));
 
         return inlineKeyboardMarkup;
     }
@@ -112,12 +133,15 @@ public class PaymentMethodService {
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getYoomoneyUrl(),
                         PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case PAYPAL:
-            case BUYMEACOFFEE:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
-            case ROBOKASSA:
+            case GOOGLE_PAY:
+            case APPLE_PAY:
+            case BANK_CARD:
+            case SAMSUNG_PAY:
+            case YANDEX_PAY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRobokassaUrl(locale),
-                        PaymentMethod.ROBOKASSA.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
+                        paymentMethod.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRazorpayUrl(),
                         PaymentMethod.RAZORPAY.getCurrency(), paidSubscriptionPlans, locale);
@@ -138,7 +162,7 @@ public class PaymentMethodService {
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.TELEGRAM) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
-        } else if (paymentMethod == PaymentMethod.ROBOKASSA) {
+        } else if (PaymentMethod.ROBOKASSA_METHODS.contains(paymentMethod)) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO, locale) + "\n"
                     + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
                     + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
@@ -147,54 +171,72 @@ public class PaymentMethodService {
 
         return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
                 + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
-                + localisationService.getMessage("message." + paymentMethod.name().toLowerCase() + ".apps", locale);
+                + localisationService.getMessage("message." + paymentMethod.localisationPaymentAppsName() + ".apps", locale);
     }
 
     public String getCallbackAnswer(PaymentMethod paymentMethod, Locale locale) {
-        return localisationService.getMessage(paymentMethod.name().toLowerCase() + ".payment.method", locale);
+        return localisationService.getMessage(paymentMethod.localisationPaymentMethodName() + ".payment.method", locale);
     }
 
     public enum PaymentMethod {
 
-        ROBOKASSA("RUB", true),
+        BANK_CARD("RUB"),
 
-        PAYPAL("$", true),
+        GOOGLE_PAY("RUB"),
 
-        BUYMEACOFFEE("$", false),
+        APPLE_PAY("RUB"),
 
-        RAZORPAY("$", true),
+        SAMSUNG_PAY("RUB"),
 
-        QIWI("RUB", true),
+        YANDEX_PAY("RUB"),
 
-        OSON("UZS", true),
+        PAYPAL("$"),
 
-        YOOMONEY("RUB", true),
+        RAZORPAY("$"),
 
-        CRYPTOCURRENCY("USDT", true),
+        QIWI("RUB"),
 
-        PERFECTMONEY("$", true),
+        OSON("UZS"),
 
-        TELEGRAM("UAH", true);
+        YOOMONEY("RUB"),
+
+        CRYPTOCURRENCY("USDT"),
+
+        PERFECTMONEY("$"),
+
+        TELEGRAM("UAH");
+
+        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY);
 
         private final String currency;
 
-        private boolean active;
-
-        PaymentMethod(String currency, boolean active) {
+        PaymentMethod(String currency) {
             this.currency = currency;
-            this.active = active;
         }
 
         public String getCurrency() {
             return currency;
         }
 
-        public boolean isActive() {
-            return active;
+        public static PaymentMethod getValue(String name, Supplier<UserException> exceptionSupplier) {
+            for (PaymentMethod value : values()) {
+                if (value.name().equals(name)) {
+                    return value;
+                }
+            }
+
+            throw exceptionSupplier.get();
         }
 
-        public static PaymentMethod[] activeValues() {
-            return Stream.of(values()).filter(PaymentMethod::isActive).toArray(PaymentMethod[]::new);
+        public String localisationPaymentAppsName() {
+            if (ROBOKASSA_METHODS.contains(this)) {
+                return "robokassa";
+            }
+            return name().toLowerCase().replace("_", ".");
+        }
+
+        public String localisationPaymentMethodName() {
+            return name().toLowerCase().replace("_", ".");
         }
     }
 }
