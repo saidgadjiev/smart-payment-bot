@@ -113,7 +113,8 @@ public class PaymentMethodService {
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.QIWI, locale),
                 buttonFactory.paymentMethod(PaymentMethod.YOOMONEY, locale)));
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.OSON, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.BEELINE, locale),
+                buttonFactory.paymentMethod(PaymentMethod.OSON, locale)));
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.CRYPTOCURRENCY, locale)));
 
@@ -138,6 +139,7 @@ public class PaymentMethodService {
             case BANK_CARD:
             case SAMSUNG_PAY:
             case YANDEX_PAY:
+            case BEELINE:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRobokassaUrl(locale),
                         paymentMethod.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
@@ -160,6 +162,11 @@ public class PaymentMethodService {
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.TELEGRAM) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
+        } else if (PaymentMethod.BEELINE == paymentMethod) {
+            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BEELINE_PAYMENT_METHOD_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
+                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHODS, locale);
         } else if (PaymentMethod.ROBOKASSA_METHODS.contains(paymentMethod)) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO, locale) + "\n"
                     + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
@@ -196,6 +203,8 @@ public class PaymentMethodService {
 
         OSON("UZS"),
 
+        BEELINE("RUB"),
+
         YOOMONEY("RUB"),
 
         CRYPTOCURRENCY("USDT"),
@@ -204,7 +213,7 @@ public class PaymentMethodService {
 
         TELEGRAM("UAH");
 
-        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY);
+        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY, BEELINE);
 
         private final String currency;
 

@@ -32,7 +32,7 @@ public class PaidBotApi {
         this.authProperties = authProperties;
     }
 
-    public void refreshSub(int userId) {
+    public void refreshSub(long userId) {
         try {
             ResponseEntity<Void> response = restTemplate.postForEntity(buildUrl(userId), new HttpEntity<>(authHeaders()), Void.class);
             if (response.getStatusCode() != HttpStatus.OK) {
@@ -50,7 +50,7 @@ public class PaidBotApi {
         return httpHeaders;
     }
 
-    private String buildUrl(int userId) {
+    private String buildUrl(long userId) {
         return UriComponentsBuilder.fromHttpUrl(paidSubscriptionProperties.getServer())
                 .path("/subscription/paid/{userId}/refresh")
                 .buildAndExpand(userId).toUriString();

@@ -35,6 +35,8 @@ public class SmartPaymentMessagesProperties {
 
     public static final String MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO = "message.robokassa.payment.method.info";
 
+    public static final String MESSAGE_BEELINE_PAYMENT_METHOD_INFO = "message.beeline.payment.method.info";
+
     public static final String MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO = "message.manual.subscription.renewal.info";
 
     public static final String MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS = "message.subscription.renew.message.address";

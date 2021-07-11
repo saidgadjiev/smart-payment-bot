@@ -285,7 +285,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         return SmartPaymentCommandNames.BUY;
     }
 
-    private SendInvoice createInvoice(int userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
+    private SendInvoice createInvoice(long userId, PaidSubscriptionPlan paidSubscriptionPlan, Locale locale) {
         LOGGER.debug("Create new invoice({})", userId);
         double usd = paidSubscriptionPlan.getPrice();
         TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
@@ -296,7 +296,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         }, locale);
 
         SendInvoice.SendInvoiceBuilder sendInvoiceBuilder = SendInvoice.builder()
-                .chatId(userId)
+                .chatId(String.valueOf(userId))
                 .title(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_TITLE, locale))
                 .description(description)
                 .providerToken(getPaymentProviderToken())

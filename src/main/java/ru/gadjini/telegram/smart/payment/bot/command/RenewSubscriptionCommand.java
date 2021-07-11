@@ -50,7 +50,7 @@ public class RenewSubscriptionCommand implements BotCommand {
 
     @Override
     public void processMessage(Message message, String[] params) {
-        int userId = Integer.parseInt(params[0]);
+        long userId = Long.parseLong(params[0]);
         int planId = Integer.parseInt(params[1]);
 
         PaidSubscription paidSubscription = paymentService.processPayment(userId, planId);

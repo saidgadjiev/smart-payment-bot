@@ -33,7 +33,7 @@ public class PaymentService {
         this.paidSubscriptionApi = paidSubscriptionApi;
     }
 
-    public PaidSubscription processPayment(int userId, int planId) {
+    public PaidSubscription processPayment(long userId, int planId) {
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
         PaidSubscription paidSubscription = paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
@@ -44,7 +44,7 @@ public class PaymentService {
         return paidSubscription;
     }
 
-    public CheckoutValidationResult validateCheckout(int userId) {
+    public CheckoutValidationResult validateCheckout(long userId) {
         PaidSubscription subscription = paidSubscriptionService.getSubscription(subscriptionProperties.getPaidBotName(), userId);
 
         if (subscription == null || subscription.isTrial()) {
