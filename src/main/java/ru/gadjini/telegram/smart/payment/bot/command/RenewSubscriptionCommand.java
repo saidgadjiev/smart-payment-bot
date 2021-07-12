@@ -54,7 +54,27 @@ public class RenewSubscriptionCommand implements BotCommand {
         int planId = Integer.parseInt(params[1]);
 
         PaidSubscription paidSubscription = paymentService.processPayment(userId, planId);
+
+        LOGGER.debug("Success renew({},{})", userId, planId);
+
         Locale userLocale = userService.getLocaleOrDefault(userId);
+
+        if (userId != message.getFrom().getId() && userService.isAdmin(message.getFrom().getId())) {
+            Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
+            try {
+                messageService.sendMessage(
+                        SendMessage.builder()
+                                .chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
+                                        new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
+                                        localeOrDefault))
+                                .parseMode(ParseMode.HTML)
+                                .build()
+                );
+            } catch (Throwable e) {
+                LOGGER.error("Send to admin error\n" + e.getMessage(), e);
+            }
+        }
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(userId))
@@ -64,19 +84,6 @@ public class RenewSubscriptionCommand implements BotCommand {
                         .parseMode(ParseMode.HTML)
                         .build()
         );
-        if (userId != message.getFrom().getId() && userService.isAdmin(message.getFrom().getId())) {
-            Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
-            messageService.sendMessage(
-                    SendMessage.builder()
-                            .chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                    new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
-                                    localeOrDefault))
-                            .parseMode(ParseMode.HTML)
-                            .build()
-            );
-        }
-        LOGGER.debug("Success renew({},{})", userId, planId);
     }
 
     @Override
