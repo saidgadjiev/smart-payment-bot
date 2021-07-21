@@ -9,9 +9,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscripti
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 import ru.gadjini.telegram.smart.payment.bot.service.PaidBotApi;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-
 @Service
 public class PaymentService {
 
