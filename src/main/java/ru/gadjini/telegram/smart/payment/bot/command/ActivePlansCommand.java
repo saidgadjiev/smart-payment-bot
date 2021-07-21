@@ -53,7 +53,7 @@ public class ActivePlansCommand implements BotCommand {
             }
             text.append("ID - ").append(paidSubscriptionPlan.getId()).append("\n");
             text.append("Period - ").append(timeDeclensionProvider.getService(locale.getLanguage())
-                    .months(paidSubscriptionPlan.getPeriod().getMonths())).append("\n");
+                    .localize(paidSubscriptionPlan.getPeriod())).append("\n");
             text.append("Cost - ").append(paidSubscriptionPlan.getPrice()).append(" USD").append("\n");
         }
 

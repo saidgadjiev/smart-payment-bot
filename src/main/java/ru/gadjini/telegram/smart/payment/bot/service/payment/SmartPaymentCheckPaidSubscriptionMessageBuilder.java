@@ -64,7 +64,7 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                     MessagesProperties.MESSAGE_ACTIVE_SUBSCRIPTION,
                     new Object[]{
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
-                            subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).months(planPeriod.getMonths()),
+                            subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).localize(planPeriod),
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
                             TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
@@ -75,7 +75,7 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                     MessagesProperties.MESSAGE_SUBSCRIPTION_EXPIRED,
                     new Object[]{
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
-                            subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).months(planPeriod.getMonths()),
+                            subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).localize(planPeriod),
                             PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
                             TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
