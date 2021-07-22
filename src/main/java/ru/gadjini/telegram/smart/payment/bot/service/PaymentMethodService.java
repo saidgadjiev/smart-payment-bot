@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
@@ -79,10 +80,11 @@ public class PaymentMethodService {
                             .build()
             );
         } else if (paymentMethod == PaymentMethod.OSON) {
-            mediaMessageService.sendPhoto(
-                    SendPhoto.builder()
+            mediaMessageService.sendVideo(
+                    SendVideo.builder()
                             .chatId(String.valueOf(chatId))
-                            .photo(new InputFile(paymentsProperties.getOsonWallet()))
+                            .video(new InputFile(paymentsProperties.getOsonWallet()))
+                            .supportsStreaming(true)
                             .build()
             );
         } else if (paymentMethod == PaymentMethod.PERFECTMONEY) {
