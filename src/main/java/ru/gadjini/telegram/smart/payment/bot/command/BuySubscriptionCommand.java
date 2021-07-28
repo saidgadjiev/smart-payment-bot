@@ -35,6 +35,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
@@ -43,6 +45,7 @@ import ru.gadjini.telegram.smart.payment.bot.model.InvoicePayload;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.payment.bot.service.message.PaymentMessageBuilder;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
 import java.util.List;
@@ -65,6 +68,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private UserService userService;
 
+    private PaidSubscriptionTariffService tariffService;
+
     private SubscriptionTimeDeclensionProvider timeDeclensionProvider;
 
     private InlineKeyboardService inlineKeyboardService;
@@ -77,6 +82,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private PaymentMethodService paymentMethodService;
 
+    private PaymentMessageBuilder messageBuilder;
+
     private Jackson jackson;
 
     @Autowired
@@ -84,23 +91,26 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
                                   LocalisationService localisationService, UserService userService,
-                                  SubscriptionTimeDeclensionProvider timeDeclensionProvider,
+                                  PaidSubscriptionTariffService tariffService, SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
                                   SubscriptionProperties subscriptionProperties,
                                   TelegramCurrencyConverterFactory telegramCurrencyConverterFactory,
-                                  PaymentMethodService paymentMethodService, Jackson jackson) {
+                                  PaymentMethodService paymentMethodService, PaymentMessageBuilder messageBuilder,
+                                  Jackson jackson) {
         this.messageService = messageService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.profileProperties = profileProperties;
         this.paymentsProperties = paymentsProperties;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.tariffService = tariffService;
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
         this.subscriptionProperties = subscriptionProperties;
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
         this.paymentMethodService = paymentMethodService;
+        this.messageBuilder = messageBuilder;
         this.jackson = jackson;
     }
 
@@ -157,11 +167,9 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                subscriptionProperties.getPaidBotName()
-                        }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
+                        .text(messageBuilder.getBuyWelcome(locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(locale))
+                        .replyMarkup(paymentMethodService.getPaidSubscriptionTariffKeyboard(locale))
                         .build()
         );
     }
@@ -209,7 +217,12 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     });
             LOGGER.debug("Payment method({},{})", callbackQuery.getFrom().getId(), paymentMethod.name());
 
+            PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
+                    PaidSubscriptionTariffType::valueOf);
+
             messageService.editMessage(
+                    callbackQuery.getMessage().getText(),
+                    callbackQuery.getMessage().getReplyMarkup(),
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
@@ -217,7 +230,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                     subscriptionProperties.getPaidBotName()
                             }, locale) + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(paymentMethodService.getPaymentKeyboard(paymentMethod, locale))
+                            .replyMarkup(paymentMethodService.getPaymentKeyboard(tariffType, paymentMethod, locale))
                             .build()
             );
 
@@ -226,7 +239,23 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                             .text(paymentMethodService.getCallbackAnswer(paymentMethod, locale))
                             .build()
             );
+        } else if (requestParams.contains(SmartPaymentArg.GO_TO_TARIFFS.getKey())) {
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+            messageService.editMessage(
+                    callbackQuery.getMessage().getText(),
+                    callbackQuery.getMessage().getReplyMarkup(),
+                    EditMessageText.builder()
+                            .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .text(messageBuilder.getBuyWelcome(locale))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(paymentMethodService.getPaidSubscriptionTariffKeyboard(locale))
+                            .build()
+            );
         } else if (requestParams.contains(SmartPaymentArg.GO_BACK.getKey())) {
+            PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
+                    PaidSubscriptionTariffType::valueOf);
+
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
             messageService.editMessage(
                     EditMessageText.builder()
@@ -236,13 +265,32 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                             }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(locale))
+                            .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))
                             .build()
             );
 
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
                             .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD_ANSWER, locale))
+                            .build()
+            );
+        } else if (requestParams.contains(SmartPaymentArg.PAYMENT_TARIFF.getKey())) {
+            Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+
+            PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
+                    PaidSubscriptionTariffType::valueOf);
+
+            messageService.editMessage(
+                    callbackQuery.getMessage().getText(),
+                    callbackQuery.getMessage().getReplyMarkup(),
+                    EditMessageText.builder()
+                            .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
+                                    subscriptionProperties.getPaidBotName()
+                            }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))
                             .build()
             );
         }

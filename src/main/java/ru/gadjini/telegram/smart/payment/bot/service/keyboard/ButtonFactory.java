@@ -12,6 +12,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.CurrencyConstants;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
@@ -126,13 +127,28 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton paymentMethod(PaymentMethodService.PaymentMethod paymentMethod, Locale locale) {
+    public InlineKeyboardButton tariffButton(PaidSubscriptionTariffType tariffType, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(tariffType.name().toLowerCase() + ".payment.plan", locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, SmartPaymentCommandNames.BUY)
+                        .add(SmartPaymentArg.PAYMENT_TARIFF.getKey(), tariffType.name())
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton paymentMethod(PaidSubscriptionTariffType tariffType,
+                                              PaymentMethodService.PaymentMethod paymentMethod, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(paymentMethod.localisationPaymentMethodName() + ".payment.method", locale));
 
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, SmartPaymentCommandNames.BUY)
+                        .add(SmartPaymentArg.PAYMENT_TARIFF.getKey(), tariffType.name())
                         .add(SmartPaymentArg.PAYMENT_METHOD.getKey(), paymentMethod.name())
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
@@ -151,7 +167,7 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton goBackButton(Locale locale) {
+    public InlineKeyboardButton goBackButton(PaidSubscriptionTariffType tariff, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale));
 
@@ -159,6 +175,21 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, SmartPaymentCommandNames.BUY)
                         .add(SmartPaymentArg.GO_BACK.getKey(), true)
+                        .add(SmartPaymentArg.PAYMENT_TARIFF.getKey(), tariff.name())
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+
+    public InlineKeyboardButton goToTariffs(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, SmartPaymentCommandNames.BUY)
+                        .add(SmartPaymentArg.GO_TO_TARIFFS.getKey(), true)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

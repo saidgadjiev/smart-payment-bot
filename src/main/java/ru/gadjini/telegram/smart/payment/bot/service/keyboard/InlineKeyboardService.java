@@ -4,9 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionTariff;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverterFactory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 
 import java.util.List;
@@ -30,7 +32,7 @@ public class InlineKeyboardService {
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
     }
 
-    public InlineKeyboardMarkup telegramPaymentKeyboard(List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
+    public InlineKeyboardMarkup telegramPaymentKeyboard(PaidSubscriptionTariffType tariffType, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
@@ -38,32 +40,33 @@ public class InlineKeyboardService {
             inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.telegramPaymentButton(paidSubscriptionPlan,
                     telegramCurrencyConverter, locale)));
         });
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(tariffType, locale)));
 
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup paymentDetailsKeyboard(PaymentMethodService.PaymentMethod method,
+    public InlineKeyboardMarkup paymentDetailsKeyboard(PaidSubscriptionTariffType tariff, PaymentMethodService.PaymentMethod method,
                                                        List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
         paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(method, method.getCurrency(),
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentDetailsButton(
+                    method, method.getCurrency(),
                     telegramCurrencyConverter, paidSubscriptionPlan, locale)));
         });
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(tariff, locale)));
 
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(String paymentUrl, String currency,
+    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(PaidSubscriptionTariffType tariffType, String paymentUrl, String currency,
                                                                 List<PaidSubscriptionPlan> paidSubscriptionPlans,
                                                                 Locale locale) {
-        return paymentUrlPaymentMethodKeyboard(paymentUrl, currency, paidSubscriptionPlans, locale, null);
+        return paymentUrlPaymentMethodKeyboard(tariffType, paymentUrl, currency, paidSubscriptionPlans, locale, null);
     }
 
-    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(String paymentUrl, String currency,
+    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(PaidSubscriptionTariffType tariffType, String paymentUrl, String currency,
                                                                 List<PaidSubscriptionPlan> paidSubscriptionPlans,
                                                                 Locale locale, Consumer<TelegramCurrencyConverter> converterCustomizer) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
@@ -76,7 +79,7 @@ public class InlineKeyboardService {
             inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentUrlPaymentButton(paymentUrl, paidSubscriptionPlan,
                     currency, telegramCurrencyConverter, locale)));
         });
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(tariffType, locale)));
 
         return inlineKeyboardMarkup;
     }

@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
+import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionTariff;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
@@ -18,6 +19,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboar
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.payment.bot.common.CurrencyConstants;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
@@ -54,13 +57,15 @@ public class PaymentMethodService {
 
     private MediaMessageService mediaMessageService;
 
+    private PaidSubscriptionTariffService tariffService;
+
     @Autowired
     public PaymentMethodService(InlineKeyboardService inlineKeyboardService,
                                 SmartInlineKeyboardService smartInlineKeyboardService,
                                 LocalisationService localisationService, ButtonFactory buttonFactory,
                                 PaidSubscriptionPlanService paidSubscriptionPlanService,
                                 PaymentsProperties paymentsProperties, @TgMessageLimitsControl MessageService messageService,
-                                @Qualifier("mediaLimits") MediaMessageService mediaMessageService) {
+                                @Qualifier("mediaLimits") MediaMessageService mediaMessageService, PaidSubscriptionTariffService tariffService) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.localisationService = localisationService;
@@ -69,6 +74,7 @@ public class PaymentMethodService {
         this.paymentsProperties = paymentsProperties;
         this.messageService = messageService;
         this.mediaMessageService = mediaMessageService;
+        this.tariffService = tariffService;
     }
 
     public void sendPaymentDetails(long chatId, PaymentMethod paymentMethod, Locale locale) {
@@ -99,44 +105,60 @@ public class PaymentMethodService {
         }
     }
 
-    public InlineKeyboardMarkup getPaymentMethodsKeyboard(Locale locale) {
+    public InlineKeyboardMarkup getPaidSubscriptionTariffKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.BANK_CARD_PAYPAL, locale),
-                buttonFactory.paymentMethod(PaymentMethod.BANK_CARD, locale)));
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.APPLE_PAY, locale),
-                buttonFactory.paymentMethod(PaymentMethod.GOOGLE_PAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.YANDEX_PAY, locale),
-                buttonFactory.paymentMethod(PaymentMethod.SAMSUNG_PAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.PAYPAL, locale),
-                buttonFactory.paymentMethod(PaymentMethod.RAZORPAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.QIWI, locale),
-                buttonFactory.paymentMethod(PaymentMethod.YOOMONEY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.BEELINE, locale),
-                buttonFactory.paymentMethod(PaymentMethod.OSON, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.CRYPTOCURRENCY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.PERFECTMONEY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(PaymentMethod.TELEGRAM, locale)));
+        List<PaidSubscriptionTariff> activeTariffs = tariffService.getActiveTariffs();
+        if (activeTariffs.size() == 1) {
+            return getPaymentMethodsKeyboard(activeTariffs.iterator().next().getTariffType(), locale);
+        } else {
+            for (PaidSubscriptionTariff tariff : activeTariffs) {
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.tariffButton(tariff.getTariffType(), locale)));
+            }
+        }
 
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getPaymentKeyboard(PaymentMethod paymentMethod, Locale locale) {
-        List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans();
+    public InlineKeyboardMarkup getPaymentMethodsKeyboard(PaidSubscriptionTariffType tariffType, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD_PAYPAL, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.APPLE_PAY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.GOOGLE_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.YANDEX_PAY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.SAMSUNG_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.PAYPAL, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.RAZORPAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.QIWI, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.YOOMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BEELINE, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.OSON, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.CRYPTOCURRENCY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.PERFECTMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.TELEGRAM, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goToTariffs(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getPaymentKeyboard(PaidSubscriptionTariffType tariffType, PaymentMethod paymentMethod, Locale locale) {
+        List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans(tariffType);
         switch (paymentMethod) {
             case YOOMONEY:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getYoomoneyUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getYoomoneyUrl(),
                         PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case PAYPAL:
             case BANK_CARD_PAYPAL:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getPaypalUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
             case GOOGLE_PAY:
             case APPLE_PAY:
@@ -144,22 +166,22 @@ public class PaymentMethodService {
             case SAMSUNG_PAY:
             case YANDEX_PAY:
             case BEELINE:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRobokassaUrl(locale),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getRobokassaUrl(locale),
                         paymentMethod.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getRazorpayUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getRazorpayUrl(),
                         PaymentMethod.RAZORPAY.getCurrency(), paidSubscriptionPlans, locale);
             case QIWI:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(paymentsProperties.getQiwiUrl(),
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getQiwiUrl(),
                         PaymentMethod.QIWI.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case CRYPTOCURRENCY:
-                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.CRYPTOCURRENCY, paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(tariffType, PaymentMethod.CRYPTOCURRENCY, paidSubscriptionPlans, locale);
             case OSON:
-                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.OSON, paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(tariffType, PaymentMethod.OSON, paidSubscriptionPlans, locale);
             case PERFECTMONEY:
-                return inlineKeyboardService.paymentDetailsKeyboard(PaymentMethod.PERFECTMONEY, paidSubscriptionPlans, locale);
+                return inlineKeyboardService.paymentDetailsKeyboard(tariffType, PaymentMethod.PERFECTMONEY, paidSubscriptionPlans, locale);
             default:
-                return inlineKeyboardService.telegramPaymentKeyboard(paidSubscriptionPlans, locale);
+                return inlineKeyboardService.telegramPaymentKeyboard(tariffType, paidSubscriptionPlans, locale);
         }
     }
 
