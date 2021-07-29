@@ -34,7 +34,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTime
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
-import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
@@ -148,13 +147,11 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         LOGGER.debug("Start successfulPayment({})", message.getFrom().getId());
         InvoicePayload invoicePayload = jackson.readValue(message.getSuccessfulPayment().getInvoicePayload(), InvoicePayload.class);
         PaidSubscription paidSubscription = paymentService.processPayment(message.getFrom().getId(), invoicePayload.getPlanId());
-        Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
-                                localeOrDefault))
+                        .text(messageBuilder.getSuccessfulPaymentMessage(paidSubscription, locale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );

@@ -8,8 +8,8 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.CheckPaidSubscriptionMessageBuilder;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.FixedTariffPaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
-import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 
 import java.time.ZonedDateTime;
@@ -45,7 +45,7 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                 return localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION,
                         new Object[]{
-                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                                 TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                         },
                         locale);
@@ -53,7 +53,7 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
                 return localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION_EXPIRED,
                         new Object[]{
-                                PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                                 TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                         },
                         locale);
@@ -63,9 +63,9 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
             return localisationService.getMessage(
                     MessagesProperties.MESSAGE_ACTIVE_SUBSCRIPTION,
                     new Object[]{
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                             subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).localize(planPeriod),
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
                             TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
                     locale);
@@ -74,9 +74,9 @@ public class SmartPaymentCheckPaidSubscriptionMessageBuilder implements CheckPai
             return localisationService.getMessage(
                     MessagesProperties.MESSAGE_SUBSCRIPTION_EXPIRED,
                     new Object[]{
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
                             subscriptionTimeDeclensionProvider.getService(locale.getLanguage()).localize(planPeriod),
-                            PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate()),
                             TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
                     },
                     locale);

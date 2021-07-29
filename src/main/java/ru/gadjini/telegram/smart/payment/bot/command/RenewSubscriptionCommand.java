@@ -10,12 +10,10 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
-import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentMessagesProperties;
+import ru.gadjini.telegram.smart.payment.bot.service.message.PaymentMessageBuilder;
 import ru.gadjini.telegram.smart.payment.bot.service.payment.PaymentService;
 
 import java.util.Locale;
@@ -25,22 +23,22 @@ public class RenewSubscriptionCommand implements BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RenewSubscriptionCommand.class);
 
-    private LocalisationService localisationService;
-
     private UserService userService;
 
     private PaymentService paymentService;
 
     private MessageService messageService;
 
+    private PaymentMessageBuilder paymentMessageBuilder;
+
     @Autowired
-    public RenewSubscriptionCommand(LocalisationService localisationService,
-                                    UserService userService, PaymentService paymentService,
-                                    @TgMessageLimitsControl MessageService messageService) {
-        this.localisationService = localisationService;
+    public RenewSubscriptionCommand(UserService userService, PaymentService paymentService,
+                                    @TgMessageLimitsControl MessageService messageService,
+                                    PaymentMessageBuilder paymentMessageBuilder) {
         this.userService = userService;
         this.paymentService = paymentService;
         this.messageService = messageService;
+        this.paymentMessageBuilder = paymentMessageBuilder;
     }
 
     @Override
@@ -60,14 +58,11 @@ public class RenewSubscriptionCommand implements BotCommand {
         Locale userLocale = userService.getLocaleOrDefault(userId);
 
         if (userId != message.getFrom().getId() && userService.isAdmin(message.getFrom().getId())) {
-            Locale localeOrDefault = userService.getLocaleOrDefault(message.getFrom().getId());
             try {
                 messageService.sendMessage(
                         SendMessage.builder()
                                 .chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                        new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
-                                        localeOrDefault))
+                                .text(paymentMessageBuilder.getSuccessfulPaymentMessage(paidSubscription, userLocale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
                 );
@@ -78,9 +73,7 @@ public class RenewSubscriptionCommand implements BotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(userId))
-                        .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUCCESSFUL_PAYMENT,
-                                new Object[]{PaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())},
-                                userLocale))
+                        .text(paymentMessageBuilder.getSuccessfulPaymentMessage(paidSubscription, userLocale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );

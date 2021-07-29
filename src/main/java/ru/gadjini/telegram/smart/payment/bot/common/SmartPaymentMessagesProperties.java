@@ -9,7 +9,9 @@ public class SmartPaymentMessagesProperties {
 
     public static final String MESSAGE_INVOICE_DESCRIPTION = "message.invoice.description";
 
-    public static final String MESSAGE_SUCCESSFUL_PAYMENT = "message.successful.payment";
+    public static final String MESSAGE_FIXED_PLAN_SUCCESSFUL_PAYMENT = "message.fixed.plan.successful.payment";
+
+    public static final String MESSAGE_FLEXIBLE_PLAN_SUCCESSFUL_PAYMENT = "message.flexible.plan.successful.payment";
 
     public static final String MESSAGE_BUY_WELCOME = "message.buy.welcome";
 

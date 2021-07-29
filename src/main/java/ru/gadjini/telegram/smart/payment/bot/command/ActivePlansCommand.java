@@ -11,6 +11,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTimeDeclensionProvider;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentCommandNames;
 
 import java.util.List;
@@ -44,17 +45,21 @@ public class ActivePlansCommand implements BotCommand {
 
     @Override
     public void processMessage(Message message, String[] params) {
-        List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans();
         StringBuilder text = new StringBuilder();
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        for (PaidSubscriptionPlan paidSubscriptionPlan : paidSubscriptionPlans) {
-            if (text.length() > 0) {
-                text.append("\n");
+        for (PaidSubscriptionTariffType tariffType : PaidSubscriptionTariffType.values()) {
+            text.append(tariffType.name()).append(" tariff:");
+            List<PaidSubscriptionPlan> paidSubscriptionPlans = paidSubscriptionPlanService.getActivePlans(tariffType);
+            for (PaidSubscriptionPlan paidSubscriptionPlan : paidSubscriptionPlans) {
+                if (text.length() > 0) {
+                    text.append("\n");
+                }
+                text.append("ID - ").append(paidSubscriptionPlan.getId()).append("\n");
+                text.append("Period - ").append(timeDeclensionProvider.getService(locale.getLanguage())
+                        .localize(paidSubscriptionPlan.getPeriod())).append("\n");
+                text.append("Cost - ").append(paidSubscriptionPlan.getPrice()).append(" USD").append("\n");
             }
-            text.append("ID - ").append(paidSubscriptionPlan.getId()).append("\n");
-            text.append("Period - ").append(timeDeclensionProvider.getService(locale.getLanguage())
-                    .localize(paidSubscriptionPlan.getPeriod())).append("\n");
-            text.append("Cost - ").append(paidSubscriptionPlan.getPrice()).append(" USD").append("\n");
+            text.append("\n\n");
         }
 
         messageService.sendMessage(SendMessage.builder()

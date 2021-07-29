@@ -7,12 +7,15 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.payment.bot.service.PaidBotApi;
+
+import java.util.Map;
 
 @Service
 public class PaymentService {
 
-    private PaidSubscriptionService paidSubscriptionService;
+    private Map<PaidSubscriptionTariffType, PaidSubscriptionService> paidSubscriptionServices;
 
     private PaidSubscriptionPlanService paidSubscriptionPlanService;
 
@@ -21,10 +24,10 @@ public class PaymentService {
     private PaidBotApi paidSubscriptionApi;
 
     @Autowired
-    public PaymentService(PaidSubscriptionService paidSubscriptionService,
+    public PaymentService(Map<PaidSubscriptionTariffType, PaidSubscriptionService> paidSubscriptionServices,
                           PaidSubscriptionPlanService paidSubscriptionPlanService,
                           SubscriptionProperties subscriptionProperties, PaidBotApi paidSubscriptionApi) {
-        this.paidSubscriptionService = paidSubscriptionService;
+        this.paidSubscriptionServices = paidSubscriptionServices;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
         this.subscriptionProperties = subscriptionProperties;
         this.paidSubscriptionApi = paidSubscriptionApi;
@@ -33,8 +36,9 @@ public class PaymentService {
     public PaidSubscription processPayment(long userId, int planId) {
         PaidSubscriptionPlan paidSubscriptionPlan = paidSubscriptionPlanService.getPlanById(planId);
 
-        PaidSubscription paidSubscription = paidSubscriptionService.renewSubscription(subscriptionProperties.getPaidBotName(),
-                userId, paidSubscriptionPlan.getId(), paidSubscriptionPlan.getPeriod());
+        PaidSubscription paidSubscription = paidSubscriptionServices.get(paidSubscriptionPlan.getTariff())
+                .renewSubscription(subscriptionProperties.getPaidBotName(), userId, paidSubscriptionPlan.getId(),
+                        paidSubscriptionPlan.getPeriod());
 
         paidSubscriptionApi.refreshSub(userId);
 
