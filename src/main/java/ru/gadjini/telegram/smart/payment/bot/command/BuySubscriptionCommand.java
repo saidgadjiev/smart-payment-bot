@@ -155,7 +155,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                         .parseMode(ParseMode.HTML)
                         .build()
         );
-        LOGGER.debug("Successful payment({}, {}, {})", message.getFrom().getId(), invoicePayload.getPlanId(), paidSubscription.getZonedEndDate());
+        LOGGER.debug("Successful payment({}, {})", message.getFrom().getId(), invoicePayload.getPlanId());
     }
 
     @Override
