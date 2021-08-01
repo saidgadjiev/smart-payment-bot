@@ -34,7 +34,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.declension.SubscriptionTime
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
-import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 import ru.gadjini.telegram.smart.payment.bot.common.SmartPaymentArg;
@@ -67,8 +66,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private UserService userService;
 
-    private PaidSubscriptionTariffService tariffService;
-
     private SubscriptionTimeDeclensionProvider timeDeclensionProvider;
 
     private InlineKeyboardService inlineKeyboardService;
@@ -90,7 +87,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   PaidSubscriptionPlanService paidSubscriptionPlanService,
                                   ProfileProperties profileProperties, PaymentsProperties paymentsProperties,
                                   LocalisationService localisationService, UserService userService,
-                                  PaidSubscriptionTariffService tariffService, SubscriptionTimeDeclensionProvider timeDeclensionProvider,
+                                  SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
                                   SubscriptionProperties subscriptionProperties,
                                   TelegramCurrencyConverterFactory telegramCurrencyConverterFactory,
@@ -102,7 +99,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.paymentsProperties = paymentsProperties;
         this.localisationService = localisationService;
         this.userService = userService;
-        this.tariffService = tariffService;
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;

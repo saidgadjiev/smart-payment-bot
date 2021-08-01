@@ -50,4 +50,8 @@ public class SmartPaymentMessagesProperties {
     public static final String MESSAGE_ROBOKASSA_PAYMENT_METHODS = "message.robokassa.payment.methods";
 
     public static final String MESSAGE_INACTIVE_PAYMENT_METHOD = "message.inactive.payment.method";
+
+    public static final String MESSAGE_CHOOSE_TARIFF = "message.choose.tariff";
+
+    public static final String MESSAGE_OSON_USAGE = "message.oson.usage";
 }

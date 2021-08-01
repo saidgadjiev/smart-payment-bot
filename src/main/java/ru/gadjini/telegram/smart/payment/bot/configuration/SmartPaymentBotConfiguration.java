@@ -6,8 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.FatherCheckPaidSubscriptionMessageBuilder;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.payment.bot.property.PaidBotProperties;
 import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.SmartPaymentCheckFixedPaidSubscriptionMessageBuilder;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder;
+import ru.gadjini.telegram.smart.payment.bot.service.payment.SmartPaymentCommonPaidSubscriptionMessageBuilder;
+
+import java.util.Map;
 
 @Configuration
 public class SmartPaymentBotConfiguration {
@@ -33,5 +41,21 @@ public class SmartPaymentBotConfiguration {
         updateFilter.setNext(userSynchronizedFilter).setNext(startCommandFilter).setNext(techWorkFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;
+    }
+
+    @Bean
+    public FatherCheckPaidSubscriptionMessageBuilder checkPaidSubscriptionMessageBuilder(
+            PaidSubscriptionPlanService paidSubscriptionPlanService,
+            SmartPaymentCheckFixedPaidSubscriptionMessageBuilder smartPaymentCheckPaidSubscriptionMessageBuilder,
+            SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder smartPaymentCheckFlexiblePaidSubscriptionMessageBuilder,
+            SmartPaymentCommonPaidSubscriptionMessageBuilder commonPaidSubscriptionMessageBuilder) {
+        return new FatherCheckPaidSubscriptionMessageBuilder(
+                commonPaidSubscriptionMessageBuilder,
+                paidSubscriptionPlanService,
+                Map.of(PaidSubscriptionTariffType.FIXED,
+                        smartPaymentCheckPaidSubscriptionMessageBuilder,
+                        PaidSubscriptionTariffType.FLEXIBLE,
+                        smartPaymentCheckFlexiblePaidSubscriptionMessageBuilder)
+        );
     }
 }

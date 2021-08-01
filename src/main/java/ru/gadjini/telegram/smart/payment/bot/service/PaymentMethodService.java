@@ -90,6 +90,9 @@ public class PaymentMethodService {
                     SendVideo.builder()
                             .chatId(String.valueOf(chatId))
                             .video(new InputFile(paymentsProperties.getOsonWallet()))
+                            .caption(localisationService.getMessage(
+                                    SmartPaymentMessagesProperties.MESSAGE_OSON_USAGE, locale
+                            ))
                             .supportsStreaming(true)
                             .build()
             );
@@ -139,9 +142,10 @@ public class PaymentMethodService {
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BEELINE, locale),
                 buttonFactory.paymentMethod(tariffType, PaymentMethod.OSON, locale)));
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.CRYPTOCURRENCY, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.WEBMONEY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethod.PERFECTMONEY, locale)));
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.PERFECTMONEY, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.CRYPTOCURRENCY, locale)));
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.TELEGRAM, locale)));
 
@@ -166,6 +170,7 @@ public class PaymentMethodService {
             case SAMSUNG_PAY:
             case YANDEX_PAY:
             case BEELINE:
+            case WEBMONEY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getRobokassaUrl(locale),
                         paymentMethod.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
@@ -229,6 +234,8 @@ public class PaymentMethodService {
 
         QIWI("RUB"),
 
+        WEBMONEY("RUB"),
+
         OSON("UZS"),
 
         BEELINE("RUB"),
@@ -241,7 +248,7 @@ public class PaymentMethodService {
 
         TELEGRAM("UAH");
 
-        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY, BEELINE);
+        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY, BEELINE, WEBMONEY);
 
         private final String currency;
 

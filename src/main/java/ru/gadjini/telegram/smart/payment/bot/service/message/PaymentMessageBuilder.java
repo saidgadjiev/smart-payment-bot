@@ -54,7 +54,10 @@ public class PaymentMessageBuilder {
     public String getBuyWelcome(Locale locale) {
         String buyWelcome = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
                 subscriptionProperties.getPaidBotName()
-        }, locale);
+        }, locale) + "\n\n" +
+                localisationService.getMessage(
+                        SmartPaymentMessagesProperties.MESSAGE_CHOOSE_TARIFF, locale
+                );
 
         StringBuilder tariff = new StringBuilder();
         List<PaidSubscriptionTariff> activeTariffs = paidSubscriptionTariffService.getActiveTariffs();
