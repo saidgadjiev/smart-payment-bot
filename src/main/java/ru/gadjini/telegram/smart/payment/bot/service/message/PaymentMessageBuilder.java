@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionTariff;
-import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.FixedTariffPaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
@@ -21,18 +20,15 @@ public class PaymentMessageBuilder {
 
     private LocalisationService localisationService;
 
-    private SubscriptionProperties subscriptionProperties;
-
     private PaidSubscriptionTariffService paidSubscriptionTariffService;
 
     private PaidSubscriptionPlanService paidSubscriptionPlanService;
 
     @Autowired
-    public PaymentMessageBuilder(LocalisationService localisationService, SubscriptionProperties subscriptionProperties,
+    public PaymentMessageBuilder(LocalisationService localisationService,
                                  PaidSubscriptionTariffService paidSubscriptionTariffService,
                                  PaidSubscriptionPlanService paidSubscriptionPlanService) {
         this.localisationService = localisationService;
-        this.subscriptionProperties = subscriptionProperties;
         this.paidSubscriptionTariffService = paidSubscriptionTariffService;
         this.paidSubscriptionPlanService = paidSubscriptionPlanService;
     }
@@ -52,9 +48,7 @@ public class PaymentMessageBuilder {
     }
 
     public String getBuyWelcome(Locale locale) {
-        String buyWelcome = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                subscriptionProperties.getPaidBotName()
-        }, locale) + "\n\n" +
+        String buyWelcome = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale) + "\n\n" +
                 localisationService.getMessage(
                         SmartPaymentMessagesProperties.MESSAGE_CHOOSE_TARIFF, locale
                 );

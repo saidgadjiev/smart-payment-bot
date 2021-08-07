@@ -24,7 +24,6 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.property.ProfileProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -72,8 +71,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
 
     private PaymentService paymentService;
 
-    private SubscriptionProperties subscriptionProperties;
-
     private TelegramCurrencyConverterFactory telegramCurrencyConverterFactory;
 
     private PaymentMethodService paymentMethodService;
@@ -89,7 +86,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                   LocalisationService localisationService, UserService userService,
                                   SubscriptionTimeDeclensionProvider timeDeclensionProvider,
                                   InlineKeyboardService inlineKeyboardService, PaymentService paymentService,
-                                  SubscriptionProperties subscriptionProperties,
                                   TelegramCurrencyConverterFactory telegramCurrencyConverterFactory,
                                   PaymentMethodService paymentMethodService, PaymentMessageBuilder messageBuilder,
                                   Jackson jackson) {
@@ -102,7 +98,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         this.timeDeclensionProvider = timeDeclensionProvider;
         this.inlineKeyboardService = inlineKeyboardService;
         this.paymentService = paymentService;
-        this.subscriptionProperties = subscriptionProperties;
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
         this.paymentMethodService = paymentMethodService;
         this.messageBuilder = messageBuilder;
@@ -219,9 +214,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                    subscriptionProperties.getPaidBotName()
-                            }, locale) + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
+                                    + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaymentKeyboard(tariffType, paymentMethod, locale))
                             .build()
@@ -253,9 +247,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
             messageService.editMessage(
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                    subscriptionProperties.getPaidBotName()
-                            }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
+                                    + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))
@@ -279,9 +272,8 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, new Object[]{
-                                    subscriptionProperties.getPaidBotName()
-                            }, locale) + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
+                                    + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))
                             .build()
@@ -305,8 +297,7 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
         TelegramCurrencyConverter converter = telegramCurrencyConverterFactory.createConverter();
         double targetPrice = NumberUtils.round(converter.convertTo(usd, PaymentMethodService.PaymentMethod.TELEGRAM.getCurrency()), 2);
         String description = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_INVOICE_DESCRIPTION, new Object[]{
-                timeDeclensionProvider.getService(locale.getLanguage()).localize(paidSubscriptionPlan.getPeriod()),
-                subscriptionProperties.getPaidBotName()
+                timeDeclensionProvider.getService(locale.getLanguage()).localize(paidSubscriptionPlan.getPeriod())
         }, locale);
 
         SendInvoice.SendInvoiceBuilder sendInvoiceBuilder = SendInvoice.builder()
