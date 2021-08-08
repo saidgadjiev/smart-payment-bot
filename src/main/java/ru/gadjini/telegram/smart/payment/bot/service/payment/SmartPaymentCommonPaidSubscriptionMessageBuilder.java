@@ -8,9 +8,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.CommonCheckPaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.FixedTariffPaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionMessageBuilder;
-import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 
-import java.time.ZonedDateTime;
 import java.util.Locale;
 
 @Component
