@@ -7,6 +7,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.CommonCheckPaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.FixedTariffPaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.utils.TimeUtils;
 
 import java.time.ZonedDateTime;
@@ -17,35 +18,48 @@ public class SmartPaymentCommonPaidSubscriptionMessageBuilder implements CommonC
 
     private LocalisationService localisationService;
 
+    private PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder;
+
     @Autowired
-    public SmartPaymentCommonPaidSubscriptionMessageBuilder(LocalisationService localisationService) {
+    public SmartPaymentCommonPaidSubscriptionMessageBuilder(LocalisationService localisationService,
+                                                            PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder) {
         this.localisationService = localisationService;
+        this.paidSubscriptionMessageBuilder = paidSubscriptionMessageBuilder;
     }
 
     @Override
     public String getMessage(PaidSubscription paidSubscription, Locale locale) {
         if (paidSubscription == null) {
-            return localisationService.getMessage(
-                    MessagesProperties.MESSAGE_SUBSCRIPTION_NOT_FOUND,
-                    locale
-            );
+            return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
+                    MessagesProperties.MESSAGE_SUBSCRIPTION_NOT_FOUND, locale)
+            )
+                    .withRenewInstructions()
+                    .buildMessage(locale);
         } else if (paidSubscription.isTrial()) {
             if (paidSubscription.isActive()) {
-                return localisationService.getMessage(
+                return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION,
                         new Object[]{
-                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
-                                TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
+                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
                         },
-                        locale);
+                        locale)
+                )
+                        .withSubscriptionFor()
+                        .withUtcTime()
+                        .withRenewInstructions()
+                        .buildMessage(locale);
             } else {
-                return localisationService.getMessage(
+                return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                         MessagesProperties.MESSAGE_TRIAL_SUBSCRIPTION_EXPIRED,
                         new Object[]{
-                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
-                                TimeUtils.TIME_FORMATTER.format(ZonedDateTime.now(TimeUtils.UTC))
+                                FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
                         },
-                        locale);
+                        locale)
+                )
+                        .withSubscriptionFor()
+                        .withUtcTime()
+                        .withRenewInstructions()
+                        .buildMessage(locale);
             }
         } else {
             return null;

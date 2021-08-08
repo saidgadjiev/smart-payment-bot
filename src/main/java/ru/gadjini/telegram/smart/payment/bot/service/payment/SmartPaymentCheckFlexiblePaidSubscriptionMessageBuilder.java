@@ -7,6 +7,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.CheckPaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.FixedTariffPaidSubscriptionService;
+import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.tariff.PaidSubscriptionTariffType;
 import ru.gadjini.telegram.smart.bot.commons.utils.JodaTimeUtils;
 
@@ -17,29 +18,41 @@ public class SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder implements 
 
     private LocalisationService localisationService;
 
+    private PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder;
+
     @Autowired
-    public SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder(LocalisationService localisationService) {
+    public SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder(LocalisationService localisationService,
+                                                                   PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder) {
         this.localisationService = localisationService;
+        this.paidSubscriptionMessageBuilder = paidSubscriptionMessageBuilder;
     }
 
     @Override
     public String getMessage(PaidSubscription paidSubscription, Locale locale) {
-        if (paidSubscription.isActive()) {
-            return localisationService.getMessage(
+        if (paidSubscription.isSubscriptionIntervalActive()) {
+            return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_ACTIVE_FLEXIBLE_SUBSCRIPTION,
                     new Object[]{
-                            JodaTimeUtils.toDays(paidSubscription.getSubscriptionInterval()),
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate())
+                            JodaTimeUtils.toDays(paidSubscription.getSubscriptionInterval())
                     },
-                    locale);
+                    locale)
+            )
+                    .withSubscriptionFor()
+                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withRenewInstructions()
+                    .buildMessage(locale);
         } else {
-            return localisationService.getMessage(
+            return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_FLEXIBLE_SUBSCRIPTION_EXPIRED,
                     new Object[]{
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getPurchaseDate())
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
                     },
-                    locale);
+                    locale)
+            )
+                    .withSubscriptionFor()
+                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withRenewInstructions()
+                    .buildMessage(locale);
         }
     }
 

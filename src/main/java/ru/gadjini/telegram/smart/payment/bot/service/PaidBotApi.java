@@ -33,8 +33,14 @@ public class PaidBotApi {
     }
 
     public void refreshSub(long userId) {
+        for (String server : paidSubscriptionProperties.getServers()) {
+            refreshSub(server, userId);
+        }
+    }
+
+    public void refreshSub(String server, long userId) {
         try {
-            ResponseEntity<Void> response = restTemplate.postForEntity(buildUrl(userId), new HttpEntity<>(authHeaders()), Void.class);
+            ResponseEntity<Void> response = restTemplate.postForEntity(buildUrl(server, userId), new HttpEntity<>(authHeaders()), Void.class);
             if (response.getStatusCode() != HttpStatus.OK) {
                 LOGGER.error("Refresh paid subscription failed({}, {})", response.getStatusCodeValue(), userId);
             }
@@ -50,8 +56,8 @@ public class PaidBotApi {
         return httpHeaders;
     }
 
-    private String buildUrl(long userId) {
-        return UriComponentsBuilder.fromHttpUrl(paidSubscriptionProperties.getServer())
+    private String buildUrl(String server, long userId) {
+        return UriComponentsBuilder.fromHttpUrl(server)
                 .path("/subscription/paid/{userId}/refresh")
                 .buildAndExpand(userId).toUriString();
     }

@@ -24,7 +24,7 @@ public class SmartPaymentBotConfiguration {
 
     @Autowired
     public SmartPaymentBotConfiguration(PaidBotProperties paidBotProperties, PaymentsProperties paymentsProperties) {
-        LOGGER.debug("Paid bot server({})", paidBotProperties.getServer());
+        LOGGER.debug("Paid bot servers({})", paidBotProperties.getServers());
         LOGGER.debug("Qiwi({})", paymentsProperties.getQiwiUrl());
         LOGGER.debug("YooMoney({})", paymentsProperties.getYoomoneyUrl());
         LOGGER.debug("PayPal({})", paymentsProperties.getPaypalUrl());
