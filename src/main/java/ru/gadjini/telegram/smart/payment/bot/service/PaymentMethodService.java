@@ -27,9 +27,7 @@ import ru.gadjini.telegram.smart.payment.bot.property.PaymentsProperties;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.ButtonFactory;
 import ru.gadjini.telegram.smart.payment.bot.service.keyboard.InlineKeyboardService;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -171,7 +169,12 @@ public class PaymentMethodService {
             case YANDEX_PAY:
             case BEELINE:
             case WEBMONEY:
-                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getRobokassaUrl(locale),
+                Map<Double, String> paymentUrls = new HashMap<>();
+                for (PaidSubscriptionPlan paidSubscriptionPlan : paidSubscriptionPlans) {
+                    paymentUrls.put(paidSubscriptionPlan.getPrice(), paymentsProperties.getRobokassaUrl(paidSubscriptionPlan.getPrice(), locale));
+                }
+
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentUrls,
                         paymentMethod.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case RAZORPAY:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getRazorpayUrl(),

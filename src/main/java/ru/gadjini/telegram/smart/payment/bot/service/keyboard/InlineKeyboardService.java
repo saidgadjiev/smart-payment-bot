@@ -12,6 +12,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
@@ -63,6 +64,24 @@ public class InlineKeyboardService {
                                                                 List<PaidSubscriptionPlan> paidSubscriptionPlans,
                                                                 Locale locale) {
         return paymentUrlPaymentMethodKeyboard(tariffType, paymentUrl, currency, paidSubscriptionPlans, locale, null);
+    }
+
+    public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(PaidSubscriptionTariffType tariffType, Map<Double, String> paymentUrls, String currency,
+                                                                List<PaidSubscriptionPlan> paidSubscriptionPlans,
+                                                                Locale locale, Consumer<TelegramCurrencyConverter> converterCustomizer) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        TelegramCurrencyConverter telegramCurrencyConverter = telegramCurrencyConverterFactory.createConverter();
+        if (converterCustomizer != null) {
+            converterCustomizer.accept(telegramCurrencyConverter);
+        }
+        paidSubscriptionPlans.forEach(paidSubscriptionPlan -> {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentUrlPaymentButton(paymentUrls.get(paidSubscriptionPlan.getPrice()), paidSubscriptionPlan,
+                    currency, telegramCurrencyConverter, locale)));
+        });
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(tariffType, locale)));
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup paymentUrlPaymentMethodKeyboard(PaidSubscriptionTariffType tariffType, String paymentUrl, String currency,
