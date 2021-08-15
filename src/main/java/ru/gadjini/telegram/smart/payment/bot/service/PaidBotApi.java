@@ -42,10 +42,10 @@ public class PaidBotApi {
         try {
             ResponseEntity<Void> response = restTemplate.postForEntity(buildUrl(server, userId), new HttpEntity<>(authHeaders()), Void.class);
             if (response.getStatusCode() != HttpStatus.OK) {
-                LOGGER.error("Refresh paid subscription failed({}, {})", response.getStatusCodeValue(), userId);
+                LOGGER.error("Refresh paid subscription failed({}, {}, {})", server, response.getStatusCodeValue(), userId);
             }
         } catch (Throwable e) {
-            LOGGER.error("Refresh paid subscription failed(" + userId + ")\n" + e.getMessage(), e);
+            LOGGER.error("Refresh paid subscription failed(" + server + ", " + userId + ")\n" + e.getMessage(), e);
         }
     }
 
