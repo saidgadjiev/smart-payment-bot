@@ -19,39 +19,43 @@ public class SmartPaymentCheckFixedPaidSubscriptionMessageBuilder implements Che
 
     private PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder;
 
+    private FixedTariffPaidSubscriptionService fixedTariffPaidSubscriptionService;
+
     @Autowired
     public SmartPaymentCheckFixedPaidSubscriptionMessageBuilder(LocalisationService localisationService,
-                                                                PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder) {
+                                                                PaidSubscriptionMessageBuilder paidSubscriptionMessageBuilder,
+                                                                FixedTariffPaidSubscriptionService fixedTariffPaidSubscriptionService) {
         this.localisationService = localisationService;
         this.paidSubscriptionMessageBuilder = paidSubscriptionMessageBuilder;
+        this.fixedTariffPaidSubscriptionService = fixedTariffPaidSubscriptionService;
     }
 
     @Override
     public String getMessage(PaidSubscription paidSubscription, Locale locale) {
-        if (paidSubscription.isActive()) {
+        if (fixedTariffPaidSubscriptionService.isSubscriptionPeriodActive(paidSubscription)) {
             return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_ACTIVE_FIXED_SUBSCRIPTION,
                     new Object[]{
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getEndAt())
                     },
                     locale)
             )
                     .withSubscriptionFor()
                     .withUtcTime()
-                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withPurchaseDate(paidSubscription.getPurchasedAt())
                     .withRenewInstructions()
                     .buildMessage(locale);
         } else {
             return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_FIXED_SUBSCRIPTION_EXPIRED,
                     new Object[]{
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate()),
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getEndAt()),
                     },
                     locale)
             )
                     .withSubscriptionFor()
                     .withUtcTime()
-                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withPurchaseDate(paidSubscription.getPurchasedAt())
                     .withRenewInstructions()
                     .buildMessage(locale);
         }

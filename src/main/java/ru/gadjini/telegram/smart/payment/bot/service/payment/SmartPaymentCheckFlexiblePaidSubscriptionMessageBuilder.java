@@ -29,7 +29,7 @@ public class SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder implements 
 
     @Override
     public String getMessage(PaidSubscription paidSubscription, Locale locale) {
-        if (paidSubscription.isSubscriptionIntervalActive()) {
+        if (JodaTimeUtils.toDays(paidSubscription.getSubscriptionInterval()) > 0) {
             return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_ACTIVE_FLEXIBLE_SUBSCRIPTION,
                     new Object[]{
@@ -38,19 +38,19 @@ public class SmartPaymentCheckFlexiblePaidSubscriptionMessageBuilder implements 
                     locale)
             )
                     .withSubscriptionFor()
-                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withPurchaseDate(paidSubscription.getPurchasedAt())
                     .withRenewInstructions()
                     .buildMessage(locale);
         } else {
             return paidSubscriptionMessageBuilder.builder(localisationService.getMessage(
                     MessagesProperties.MESSAGE_FLEXIBLE_SUBSCRIPTION_EXPIRED,
                     new Object[]{
-                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getZonedEndDate())
+                            FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER.format(paidSubscription.getEndAt())
                     },
                     locale)
             )
                     .withSubscriptionFor()
-                    .withPurchaseDate(paidSubscription.getPurchaseDate())
+                    .withPurchaseDate(paidSubscription.getPurchasedAt())
                     .withRenewInstructions()
                     .buildMessage(locale);
         }

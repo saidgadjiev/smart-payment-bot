@@ -38,7 +38,7 @@ public class PaymentMessageBuilder {
         if (tariff == PaidSubscriptionTariffType.FIXED) {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_FIXED_PLAN_SUCCESSFUL_PAYMENT,
                     new Object[]{FixedTariffPaidSubscriptionService.HTML_PAID_SUBSCRIPTION_END_DATE_FORMATTER
-                            .format(paidSubscription.getZonedEndDate())},
+                            .format(paidSubscription.getEndAt())},
                     locale);
         } else {
             return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_FLEXIBLE_PLAN_SUCCESSFUL_PAYMENT,
