@@ -2,18 +2,23 @@ package ru.gadjini.telegram.smart.payment.bot.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
+import java.util.Map;
 
 @ConfigurationProperties("paid.bot")
 public class PaidBotProperties {
 
-    private List<String> servers;
+    private Map<String, String> servers;
 
-    public List<String> getServers() {
+    public Map<String, String> getServers() {
         return servers;
     }
 
-    public void setServers(List<String> servers) {
+    public void setServers(Map<String, String> servers) {
+        for (String key : servers.keySet()) {
+            servers.put(key.replace(".", "_"), servers.get(key));
+            servers.remove(key);
+        }
+
         this.servers = servers;
     }
 }
