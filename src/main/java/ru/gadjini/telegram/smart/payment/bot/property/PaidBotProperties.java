@@ -15,8 +15,10 @@ public class PaidBotProperties {
 
     public void setServers(Map<String, String> servers) {
         for (String key : servers.keySet()) {
-            servers.put(key.replace(".", "_"), servers.get(key));
-            servers.remove(key);
+            if (key.contains(".")) {
+                servers.put(key.replace(".", "_"), servers.get(key));
+                servers.remove(key);
+            }
         }
 
         this.servers = servers;
