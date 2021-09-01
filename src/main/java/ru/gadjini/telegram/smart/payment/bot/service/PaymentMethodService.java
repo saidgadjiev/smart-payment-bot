@@ -123,8 +123,7 @@ public class PaymentMethodService {
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(PaidSubscriptionTariffType tariffType, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD_PAYPAL, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD, locale)));
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.APPLE_PAY, locale),
                 buttonFactory.paymentMethod(tariffType, PaymentMethod.GOOGLE_PAY, locale)));
 
@@ -159,7 +158,6 @@ public class PaymentMethodService {
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getYoomoneyUrl(),
                         PaymentMethod.YOOMONEY.getCurrency(), paidSubscriptionPlans, locale, RUB_CUSTOMIZER);
             case PAYPAL:
-            case BANK_CARD_PAYPAL:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
             case GOOGLE_PAY:
@@ -220,8 +218,6 @@ public class PaymentMethodService {
     public enum PaymentMethod {
 
         BANK_CARD("RUB"),
-
-        BANK_CARD_PAYPAL("$"),
 
         GOOGLE_PAY("RUB"),
 
