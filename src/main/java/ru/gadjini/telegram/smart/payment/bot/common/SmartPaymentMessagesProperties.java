@@ -33,11 +33,9 @@ public class SmartPaymentMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD_ANSWER = "message.choose.convenient.payment.method.answer";
 
-    public static final String MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO = "message.telegram.payment.method.info";
+    public static final String MESSAGE_VISA_MASTER_ONLY = "message.visa.master.only";
 
-    public static final String MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO = "message.robokassa.payment.method.info";
-
-    public static final String MESSAGE_BEELINE_PAYMENT_METHOD_INFO = "message.beeline.payment.method.info";
+    public static final String MESSAGE_NON_NATIVE_CURRENCY = "message.non.native.currency";
 
     public static final String MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO = "message.manual.subscription.renewal.info";
 
@@ -54,4 +52,8 @@ public class SmartPaymentMessagesProperties {
     public static final String MESSAGE_CHOOSE_TARIFF = "message.choose.tariff";
 
     public static final String MESSAGE_OSON_USAGE = "message.oson.usage";
+
+    public static final String MESSAGE_CHOOSE_PAYMENT_SERVICE = "message.choose.payment.service";
+
+    public static final String MESSAGE_CRYPTO_PAYMENT_DETAILS = "message.crypto.payment.details";
 }

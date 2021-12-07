@@ -2,6 +2,7 @@ package ru.gadjini.telegram.smart.payment.bot.service.message;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionTariff;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -48,7 +49,11 @@ public class PaymentMessageBuilder {
     }
 
     public String getBuyWelcome(Locale locale) {
-        String buyWelcome = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale) + "\n\n" +
+        String buyWelcome = localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
+                new Object[] {
+                        localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
+                },
+                locale) + "\n\n" +
                 localisationService.getMessage(
                         SmartPaymentMessagesProperties.MESSAGE_CHOOSE_TARIFF, locale
                 );

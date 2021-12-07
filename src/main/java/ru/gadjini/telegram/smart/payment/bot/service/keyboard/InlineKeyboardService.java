@@ -13,6 +13,7 @@ import ru.gadjini.telegram.smart.payment.bot.service.PaymentMethodService;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 @Service
@@ -30,6 +31,48 @@ public class InlineKeyboardService {
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.buttonFactory = buttonFactory;
         this.telegramCurrencyConverterFactory = telegramCurrencyConverterFactory;
+    }
+
+    public InlineKeyboardMarkup getCompositePaymentMethodsKeyboard(PaidSubscriptionTariffType tariffType,
+                                                                   Set<PaymentMethodService.PaymentMethod> paymentMethods,
+                                                                   Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        for (PaymentMethodService.PaymentMethod method : paymentMethods) {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.paymentMethod(tariffType, method, locale)));
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(tariffType, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getPaymentMethodsKeyboard(PaidSubscriptionTariffType tariffType, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.BANK_CARD, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.APPLE_PAY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.GOOGLE_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.YANDEX_PAY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.SAMSUNG_PAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.PAYPAL, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.RAZORPAY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.QIWI, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.YOOMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.WEBMONEY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.PERFECTMONEY, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.CRYPTOCURRENCY, locale),
+                buttonFactory.paymentMethod(tariffType, PaymentMethodService.PaymentMethod.OSON, locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goToTariffs(locale)));
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup telegramPaymentKeyboard(PaidSubscriptionTariffType tariffType, List<PaidSubscriptionPlan> paidSubscriptionPlans, Locale locale) {

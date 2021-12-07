@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -14,6 +13,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionPlan;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscriptionTariff;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.currency.TelegramCurrencyConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
@@ -57,13 +57,16 @@ public class PaymentMethodService {
 
     private PaidSubscriptionTariffService tariffService;
 
+    private UserService userService;
+
     @Autowired
     public PaymentMethodService(InlineKeyboardService inlineKeyboardService,
                                 SmartInlineKeyboardService smartInlineKeyboardService,
                                 LocalisationService localisationService, ButtonFactory buttonFactory,
                                 PaidSubscriptionPlanService paidSubscriptionPlanService,
                                 PaymentsProperties paymentsProperties, @TgMessageLimitsControl MessageService messageService,
-                                @Qualifier("mediaLimits") MediaMessageService mediaMessageService, PaidSubscriptionTariffService tariffService) {
+                                @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
+                                PaidSubscriptionTariffService tariffService, UserService userService) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.localisationService = localisationService;
@@ -73,14 +76,16 @@ public class PaymentMethodService {
         this.messageService = messageService;
         this.mediaMessageService = mediaMessageService;
         this.tariffService = tariffService;
+        this.userService = userService;
     }
 
     public void sendPaymentDetails(long chatId, PaymentMethod paymentMethod, Locale locale) {
         if (paymentMethod == PaymentMethod.CRYPTOCURRENCY) {
-            mediaMessageService.sendPhoto(
-                    SendPhoto.builder()
+            messageService.sendMessage(
+                    SendMessage.builder()
                             .chatId(String.valueOf(chatId))
-                            .photo(new InputFile(paymentsProperties.getUsdtWallet()))
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CRYPTO_PAYMENT_DETAILS,
+                                    userService.getLocaleOrDefault(chatId)))
                             .build()
             );
         } else if (paymentMethod == PaymentMethod.OSON) {
@@ -121,34 +126,12 @@ public class PaymentMethodService {
     }
 
     public InlineKeyboardMarkup getPaymentMethodsKeyboard(PaidSubscriptionTariffType tariffType, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        return inlineKeyboardService.getPaymentMethodsKeyboard(tariffType, locale);
+    }
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BANK_CARD, locale)));
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.APPLE_PAY, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.GOOGLE_PAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.YANDEX_PAY, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.SAMSUNG_PAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.PAYPAL, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.RAZORPAY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.QIWI, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.YOOMONEY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.BEELINE, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.OSON, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.WEBMONEY, locale),
-                buttonFactory.paymentMethod(tariffType, PaymentMethod.PERFECTMONEY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.CRYPTOCURRENCY, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.paymentMethod(tariffType, PaymentMethod.TELEGRAM, locale)));
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goToTariffs(locale)));
-
-        return inlineKeyboardMarkup;
+    public InlineKeyboardMarkup getCompositePaymentMethodKeyboard(PaidSubscriptionTariffType tariffType, PaymentMethod paymentMethod, Locale locale) {
+        return inlineKeyboardService.getCompositePaymentMethodsKeyboard(tariffType,
+                getInnerPaymentMethods(paymentMethod), locale);
     }
 
     public InlineKeyboardMarkup getPaymentKeyboard(PaidSubscriptionTariffType tariffType, PaymentMethod paymentMethod, Locale locale) {
@@ -160,13 +143,16 @@ public class PaymentMethodService {
             case PAYPAL:
                 return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getPaypalUrl(),
                         PaymentMethod.PAYPAL.getCurrency(), paidSubscriptionPlans, locale);
+            case BUYMEACOFFEE:
+                return inlineKeyboardService.paymentUrlPaymentMethodKeyboard(tariffType, paymentsProperties.getBuymeacoffeeUrl(),
+                        PaymentMethod.BUYMEACOFFEE.getCurrency(), paidSubscriptionPlans, locale);
             case GOOGLE_PAY:
             case APPLE_PAY:
             case BANK_CARD:
             case SAMSUNG_PAY:
             case YANDEX_PAY:
-            case BEELINE:
             case WEBMONEY:
+            case ROBOKASSA:
                 Map<Double, String> paymentUrls = new HashMap<>();
                 for (PaidSubscriptionPlan paidSubscriptionPlan : paidSubscriptionPlans) {
                     paymentUrls.put(paidSubscriptionPlan.getPrice(), paymentsProperties.getRobokassaUrl(paidSubscriptionPlan.getPrice(), locale));
@@ -192,36 +178,49 @@ public class PaymentMethodService {
     }
 
     public String getPaymentAdditionalInformation(PaymentMethod paymentMethod, Locale locale) {
+        StringBuilder paymentMethodInfo = new StringBuilder();
         if (paymentMethod == PaymentMethod.TELEGRAM) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_TELEGRAM_PAYMENT_METHOD_INFO, locale);
-        } else if (PaymentMethod.BEELINE == paymentMethod) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BEELINE_PAYMENT_METHOD_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHODS, locale);
-        } else if (PaymentMethod.ROBOKASSA_METHODS.contains(paymentMethod)) {
-            return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHOD_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
-                    + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_ROBOKASSA_PAYMENT_METHODS, locale);
+            paymentMethodInfo
+                    .append(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_VISA_MASTER_ONLY, locale));
         }
+        if (paymentMethodInfo.length() > 0) {
+            paymentMethodInfo.append("\n");
+        }
+        paymentMethodInfo
+                .append(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_NON_NATIVE_CURRENCY, new Object[]{
+                        paymentMethod.getCurrency()
+                }, locale))
+                .append("\n")
+                .append(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale))
+                .append("\n")
+                .append(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale));
 
-        return localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_MANUAL_SUBSCRIPTION_RENEWAL_INFO, locale) + "\n"
-                + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_SUBSCRIPTION_RENEW_MESSAGE_ADDRESS, locale) + "\n\n"
-                + localisationService.getMessage("message." + paymentMethod.localisationPaymentAppsName() + ".apps", locale);
+        return paymentMethodInfo.toString();
     }
 
     public String getCallbackAnswer(PaymentMethod paymentMethod, Locale locale) {
         return localisationService.getMessage(paymentMethod.localisationPaymentMethodName() + ".payment.method", locale);
     }
 
+    private Set<PaymentMethod> getInnerPaymentMethods(PaymentMethod paymentMethod) {
+        switch (paymentMethod) {
+            case APPLE_PAY:
+                return Set.of(PaymentMethod.BUYMEACOFFEE, PaymentMethod.ROBOKASSA, PaymentMethod.TELEGRAM);
+            case GOOGLE_PAY:
+            case BANK_CARD:
+                return Set.of(PaymentMethod.BUYMEACOFFEE, PaymentMethod.ROBOKASSA);
+        }
+
+        return Set.of();
+    }
+
     public enum PaymentMethod {
 
-        BANK_CARD("RUB"),
+        BANK_CARD("RUB", true),
 
-        GOOGLE_PAY("RUB"),
+        GOOGLE_PAY("RUB", true),
 
-        APPLE_PAY("RUB"),
+        APPLE_PAY("RUB", true),
 
         SAMSUNG_PAY("RUB"),
 
@@ -237,22 +236,29 @@ public class PaymentMethodService {
 
         OSON("UZS"),
 
-        BEELINE("RUB"),
-
         YOOMONEY("RUB"),
 
         CRYPTOCURRENCY("USDT"),
 
         PERFECTMONEY("$"),
 
-        TELEGRAM("UAH");
+        TELEGRAM("UAH"),
 
-        public static Set<PaymentMethod> ROBOKASSA_METHODS = Set.of(GOOGLE_PAY, APPLE_PAY, SAMSUNG_PAY, BANK_CARD, YANDEX_PAY, BEELINE, WEBMONEY);
+        BUYMEACOFFEE("$"),
+
+        ROBOKASSA("RUB");
 
         private final String currency;
 
+        private final boolean compositeMethod;
+
         PaymentMethod(String currency) {
+            this(currency, false);
+        }
+
+        PaymentMethod(String currency, boolean compositeMethod) {
             this.currency = currency;
+            this.compositeMethod = compositeMethod;
         }
 
         public String getCurrency() {
@@ -269,15 +275,12 @@ public class PaymentMethodService {
             throw exceptionSupplier.get();
         }
 
-        public String localisationPaymentAppsName() {
-            if (ROBOKASSA_METHODS.contains(this)) {
-                return "robokassa";
-            }
+        public String localisationPaymentMethodName() {
             return name().toLowerCase().replace("_", ".");
         }
 
-        public String localisationPaymentMethodName() {
-            return name().toLowerCase().replace("_", ".");
+        public boolean isCompositeMethod() {
+            return compositeMethod;
         }
     }
 }

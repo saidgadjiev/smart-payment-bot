@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.PaymentsHandler;
+import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.Profiles;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.PaidSubscription;
@@ -208,18 +209,39 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
             PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
                     PaidSubscriptionTariffType::valueOf);
 
-            messageService.editMessage(
-                    callbackQuery.getMessage().getText(),
-                    callbackQuery.getMessage().getReplyMarkup(),
-                    EditMessageText.builder()
-                            .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                            .messageId(callbackQuery.getMessage().getMessageId())
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
-                                    + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
-                            .parseMode(ParseMode.HTML)
-                            .replyMarkup(paymentMethodService.getPaymentKeyboard(tariffType, paymentMethod, locale))
-                            .build()
-            );
+            if (paymentMethod.isCompositeMethod()) {
+                messageService.editMessage(
+                        callbackQuery.getMessage().getText(),
+                        callbackQuery.getMessage().getReplyMarkup(),
+                        EditMessageText.builder()
+                                .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                                .messageId(callbackQuery.getMessage().getMessageId())
+                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
+                                        new Object[]{
+                                                localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
+                                        }, locale)
+                                        + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_PAYMENT_SERVICE, locale))
+                                .parseMode(ParseMode.HTML)
+                                .replyMarkup(paymentMethodService.getCompositePaymentMethodKeyboard(tariffType, paymentMethod, locale))
+                                .build()
+                );
+            } else {
+                messageService.editMessage(
+                        callbackQuery.getMessage().getText(),
+                        callbackQuery.getMessage().getReplyMarkup(),
+                        EditMessageText.builder()
+                                .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                                .messageId(callbackQuery.getMessage().getMessageId())
+                                .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
+                                        new Object[]{
+                                                localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
+                                        }, locale)
+                                        + "\n\n" + paymentMethodService.getPaymentAdditionalInformation(paymentMethod, locale))
+                                .parseMode(ParseMode.HTML)
+                                .replyMarkup(paymentMethodService.getPaymentKeyboard(tariffType, paymentMethod, locale))
+                                .build()
+                );
+            }
 
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
@@ -247,7 +269,11 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
             messageService.editMessage(
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
+                                    new Object[]{
+                                            localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
+                                    },
+                                    locale)
                                     + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .parseMode(ParseMode.HTML)
@@ -272,7 +298,10 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     EditMessageText.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
-                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME, locale)
+                            .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
+                                    new Object[]{
+                                            localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
+                                    }, locale)
                                     + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))

@@ -19,9 +19,9 @@ public class PaymentsProperties {
 
     private String paypalUrl;
 
-    private String razorpayUrl;
+    private String buymeacoffeeUrl;
 
-    private String usdtWallet;
+    private String razorpayUrl;
 
     private String osonWallet;
 
@@ -69,14 +69,6 @@ public class PaymentsProperties {
         this.paypalUrl = paypalUrl;
     }
 
-    public String getUsdtWallet() {
-        return usdtWallet;
-    }
-
-    public void setUsdtWallet(String usdtWallet) {
-        this.usdtWallet = usdtWallet;
-    }
-
     public String getPerfectmoneyWallet() {
         return perfectmoneyWallet;
     }
@@ -111,5 +103,13 @@ public class PaymentsProperties {
 
     public String getRobokassaUrl(Double price, Locale locale) {
         return robokassa.getOrDefault(locale.getLanguage().toLowerCase(), robokassa.get(LocalisationService.EN_LOCALE)).get(price);
+    }
+
+    public String getBuymeacoffeeUrl() {
+        return buymeacoffeeUrl;
+    }
+
+    public void setBuymeacoffeeUrl(String buymeacoffeeUrl) {
+        this.buymeacoffeeUrl = buymeacoffeeUrl;
     }
 }
