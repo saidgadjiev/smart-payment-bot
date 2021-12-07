@@ -38,6 +38,7 @@ public class SmartPaymentBotConfiguration {
         LOGGER.debug("YooMoney({})", paymentsProperties.getYoomoneyUrl());
         LOGGER.debug("PayPal({})", paymentsProperties.getPaypalUrl());
         LOGGER.debug("Razorpay({})", paymentsProperties.getRazorpayUrl());
+        LOGGER.debug("BuyMeACoffee({})", paymentsProperties.getBuymeacoffeeUrl());
         LOGGER.debug("PerfectMoney({})", paymentsProperties.getPerfectmoneyWallet());
     }
 
