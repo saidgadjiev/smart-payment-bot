@@ -204,10 +204,10 @@ public class PaymentMethodService {
 
     private Set<PaymentMethod> getInnerPaymentMethods(PaymentMethod paymentMethod) {
         switch (paymentMethod) {
-            case APPLE_PAY:
+            case BANK_CARD:
                 return Set.of(PaymentMethod.BUYMEACOFFEE, PaymentMethod.ROBOKASSA, PaymentMethod.TELEGRAM);
             case GOOGLE_PAY:
-            case BANK_CARD:
+            case APPLE_PAY:
                 return Set.of(PaymentMethod.BUYMEACOFFEE, PaymentMethod.ROBOKASSA);
         }
 
