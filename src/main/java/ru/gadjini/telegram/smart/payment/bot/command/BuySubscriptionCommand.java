@@ -209,13 +209,11 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
             PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
                     PaidSubscriptionTariffType::valueOf);
 
+            messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
             if (paymentMethod.isCompositeMethod()) {
-                messageService.editMessage(
-                        callbackQuery.getMessage().getText(),
-                        callbackQuery.getMessage().getReplyMarkup(),
-                        EditMessageText.builder()
+                messageService.sendMessage(
+                        SendMessage.builder()
                                 .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                                .messageId(callbackQuery.getMessage().getMessageId())
                                 .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
                                         new Object[]{
                                                 localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
@@ -226,12 +224,9 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                 .build()
                 );
             } else {
-                messageService.editMessage(
-                        callbackQuery.getMessage().getText(),
-                        callbackQuery.getMessage().getReplyMarkup(),
-                        EditMessageText.builder()
+                messageService.sendMessage(
+                        SendMessage.builder()
                                 .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                                .messageId(callbackQuery.getMessage().getMessageId())
                                 .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
                                         new Object[]{
                                                 localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
@@ -249,13 +244,11 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                             .build()
             );
         } else if (requestParams.contains(SmartPaymentArg.GO_TO_TARIFFS.getKey())) {
+            messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-            messageService.editMessage(
-                    callbackQuery.getMessage().getText(),
-                    callbackQuery.getMessage().getReplyMarkup(),
-                    EditMessageText.builder()
+            messageService.sendMessage(
+                    SendMessage.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                            .messageId(callbackQuery.getMessage().getMessageId())
                             .text(messageBuilder.getBuyWelcome(locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaidSubscriptionTariffKeyboard(locale))
@@ -266,8 +259,9 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                     PaidSubscriptionTariffType::valueOf);
 
             Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-            messageService.editMessage(
-                    EditMessageText.builder()
+            messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
+            messageService.sendMessage(
+                    SendMessage.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
                                     new Object[]{
@@ -275,7 +269,6 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
                                     },
                                     locale)
                                     + "\n\n" + localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_CHOOSE_CONVENIENT_PAYMENT_METHOD, locale))
-                            .messageId(callbackQuery.getMessage().getMessageId())
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(paymentMethodService.getPaymentMethodsKeyboard(tariffType, locale))
                             .build()
@@ -292,12 +285,10 @@ public class BuySubscriptionCommand implements BotCommand, PaymentsHandler, Call
             PaidSubscriptionTariffType tariffType = requestParams.get(SmartPaymentArg.PAYMENT_TARIFF.getKey(),
                     PaidSubscriptionTariffType::valueOf);
 
-            messageService.editMessage(
-                    callbackQuery.getMessage().getText(),
-                    callbackQuery.getMessage().getReplyMarkup(),
-                    EditMessageText.builder()
+            messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
+            messageService.sendMessage(
+                    SendMessage.builder()
                             .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                            .messageId(callbackQuery.getMessage().getMessageId())
                             .text(localisationService.getMessage(SmartPaymentMessagesProperties.MESSAGE_BUY_WELCOME,
                                     new Object[]{
                                             localisationService.getMessage(MessagesProperties.MESSAGE_PAID_SUBSCRIPTION_FEATURES, locale)
